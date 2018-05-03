@@ -1,73 +1,44 @@
-'use strict'
+'use strict';
 
-const mysql = require('mysql')
-const fs = require('fs-promise')
-const Validator = require('jsonschema').Validator
-const v = new Validator()
-var conn
+const mysql = require('mysql');
+const fs = require('fs-promise');
+const Validator = require('jsonschema').Validator;
+const v = new Validator();
+var conn;
 
+const importer = {
+	
+	import: filename => {
+		return new Promise( (resolve, reject) => {
+			fs.readFile(filename, 'utf8').then(arraySplit).then(runQueries).then(()=>{
+				resolve('all tables created')
+			}).catch( err => {
+				reject(`error: ${err}`)
+			});
+		});
+	},
+	
+	config: data => {
+		const valid = v.validate(data, {
+			'host': {'type': 'string'},
+			'user': {'type': 'string'},
+			'password': {'type': 'string'},
+			'database': {'type': 'string'}
+		});
+		if(!valid) throw new Error("Invalid host, user, password, or database parameters");
+		conn = data;
+		return importer;
+	}
+	
+};
 
+module.exports = importer;
 
-const configSchema = {
-	'host': {'type': 'string'},
-	'user': {'type': 'string'},
-	'password': {'type': 'string'},
-	'database': {'type': 'string'}
-}
-
-exports.config = data => {
-	return new Promise( (resolve, reject) => {
-		console.log('starting config')
-		console.log(data)
-		const valid = v.validate(data, configSchema)
-		console.log(`valid schema: ${valid}`)
-		if (valid) {
-			console.log('storing config data')
-			conn = data
-			console.log(JSON.stringify(conn, null, 2))
-			resolve(true)
-		} else {
-			reject('invalid config data')
-		}
-	})
-}
-
-exports.importSQL = filename => {
-	console.log(`importSQL start: ${filename}`)
-	return new Promise( (resolve, reject) => {
-		console.log(`importSQL promise: ${filename}`)
-		fs.readFile(filename, 'utf8').then(arraySplit).then(runQueries).then( () => {
-			console.log(`importSQL done: ${filename}`)
-			resolve('all tables created')
-		}).catch( err => {
-			console.log(`error with: ${filename}`)
-			console.log(err)
-			reject(`error: ${err}`)
-		})
-	})
-}
-
-function arraySplit(str) {
-	console.log('arraySplit')
-	return new Promise( (resolve, reject) => {
-		if (str.indexOf(';') === -1) {
-			reject('each SQL statement must terminate with a semicolon (;)')
-		}
-		str = str.trim()
-		str = str.replace(/(?:\r\n|\r|\n)/g, ' ')
-		str = str.replace(/\s\s+/g, ' ').trim()
-		str = str.substring(0, str.length-1)
-		let arr = str.split(';')
-		resolve(arr)
-	})
-}
+function arraySplit(str) { return new Promise(resolve=>resolve(parseQueries(str))); }
 
 function runQueries(arr) {
-	console.log('connecting to database')
-	console.log(JSON.stringify(conn, null, 2))
-	let db = mysql.createConnection(conn)
+	let db = mysql.createConnection(conn);
 	Promise.all( arr.map( item => {
-		console.log(item)
 		db.query(item, (err, rows) => {
 			if (err) {
 				throw 'ERROR: '+err
@@ -79,4 +50,47 @@ function runQueries(arr) {
 	}, (e) => {
 		console.log(`error: ${e}`)
 	})
+}
+
+function parseQueries(queriesString) {
+	var quoteType = false;
+	var queries = [];
+	var buffer = [];
+	var escaped = false;
+	var lastQuoteIndex;
+	var bufferIndex = 0;
+	for (let i = 0; i < queriesString.length; i++) {
+		var char = queriesString[i];
+		var last_char = buffer.length ? buffer[buffer.length - 1] : "";
+		buffer.push(char);
+		if (last_char == "\\") escaped = !escaped;
+		else escaped = false;
+		var isQuote = (char == '"' || char == "'") && !escaped;
+		if (isQuote && quoteType == char) quoteType = false;
+		else if (isQuote && !quoteType) quoteType = char;
+		if (isQuote) lastQuoteIndex = lastQuoteIndex || bufferIndex;
+		bufferIndex++;
+		var isNewLine = char == "\n" || char == "\r";
+		if (last_char == ";" && isNewLine && false == quoteType) {
+			queries.push(buffer.join(''));
+			buffer = [];
+			bufferIndex = 0;
+			lastQuoteIndex = 0;
+		}
+	}
+	if (!!quoteType) {
+		buffer_str = buffer.join('');
+		var re_parse = buffer_str.substr(lastQuoteIndex + 1);
+		buffer = buffer_str.substr(0, lastQuoteIndex + 1).split('');
+		var newParts = parseQueries(re_parse);
+		if (newParts.length) {
+			var contd = newParts.pop().split('');
+			buffer = [...buffer, ...contd];
+			queries.push(buffer.join(''));
+			buffer = [];
+			queries = [...queries, ...newParts];
+		}
+	}
+	if (buffer.length) queries.push(buffer.join(''));
+	return queries;
 }
