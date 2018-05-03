@@ -1,21 +1,20 @@
 'use strict';
 
 const mysql = require('mysql');
-const fs = require('fs-promise');
+const fs = require('fs');
 const Validator = require('jsonschema').Validator;
 const v = new Validator();
 var conn;
 
+const query = (sql, p=[]) => new Promise((resolve, reject)=> conn.query(sql, p, (err, result)=>{ if (err) reject(err); else resolve(result); }));
+
 const importer = {
 	
 	import: filename => {
-		return new Promise( (resolve, reject) => {
-			fs.readFile(filename, 'utf8').then(arraySplit).then(runQueries).then(()=>{
-				resolve('all tables created')
-			}).catch( err => {
-				reject(`error: ${err}`)
-			});
-		});
+		var queriesString = fs.readFileSync(filename, 'utf8');
+		var queries = parseQueries(queriesString);
+		return slowLoop(queries, (q,i,d)=>query(q).then(d)) // 47668ms
+		//return Promise.all(queries.map(query)); // 48921ms
 	},
 	
 	config: data => {
@@ -26,7 +25,7 @@ const importer = {
 			'database': {'type': 'string'}
 		});
 		if(!valid) throw new Error("Invalid host, user, password, or database parameters");
-		conn = data;
+		conn = mysql.createConnection(data);
 		return importer;
 	}
 	
@@ -34,24 +33,33 @@ const importer = {
 
 module.exports = importer;
 
-function arraySplit(str) { return new Promise(resolve=>resolve(parseQueries(str))); }
-
-function runQueries(arr) {
-	let db = mysql.createConnection(conn);
-	Promise.all( arr.map( item => {
-		db.query(item, (err, rows) => {
-			if (err) {
-				throw 'ERROR: '+err
-			}
-			return 'ROWS: '+rows
-		})
-	})).then( () => {
-		console.log('DONE!')
-	}, (e) => {
-		console.log(`error: ${e}`)
-	})
+/**
+ * Execute the loopBody function once for each item in the items array, 
+ * waiting for the done function (which is passed into the loopBody function)
+ * to be called before proceeding to the next item in the array.
+ * @param {Array} items - The array of items to iterate through
+ * @param {Function} loopBody - A function to execute on each item in the array.
+ *		This function is passed 3 arguments - 
+ *			1. The item in the current iteration,
+ *			2. The index of the item in the array,
+ *			3. A function to be called when the iteration may continue.
+ * @returns {Promise} - A promise that is resolved when all the items in the 
+ *		in the array have been iterated through.
+ */
+function slowLoop(items, loopBody) {
+	return new Promise(f => {
+		let done = arguments[2] || f;
+		let idx = arguments[3] || 0;
+		let cb = items[idx + 1] ? () => slowLoop(items, loopBody, done, idx + 1) : done;
+		loopBody(items[idx], idx, cb);
+	});
 }
 
+/**
+ * Split up the dump file into a bunch of seperate queries
+ * @param {type} queriesString
+ * @returns {Array|parseQueries.queries|nm$_index.parseQueries.queries}
+ */
 function parseQueries(queriesString) {
 	var quoteType = false;
 	var queries = [];
