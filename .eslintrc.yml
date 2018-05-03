@@ -1,0 +1,31 @@
+rules:
+  indent: # force indentation as a tab (not space) (warning)
+    - 1
+    - tab
+  quotes: # use single quotes (error)
+    - 2
+    - single
+  linebreak-style:
+    - 1
+    - unix
+  semi: # flag up any use of semicolons (warning)
+    - 1
+    - never
+  strict: # flag up if 'use strict' is missing from top of file
+    - 2
+  no-console: # supress warnings if console is used
+    - 0
+  no-unused-vars:
+    - 1
+  prefer-arrow-callback:
+    - 1
+  arrow-spacing:
+    - 1
+plugins: # load the following third-party plugins (need to be installed from npmjs)
+  - "node"
+  - "jasmine"
+env: # the environments the scripts are designed to run in (defines global variables)
+  es6: true
+  node: true
+  jasmine: true
+extends: 'eslint:recommended'

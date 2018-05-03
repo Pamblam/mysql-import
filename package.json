@@ -1,0 +1,43 @@
+{
+  "author": {
+    "name": "Mark J Tyers, Rob Parham"
+  },
+  "bugs": {
+    "url": "https://github.com/pamblam/mysql-import/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "fs-promise": "^0.5.0",
+    "jsonschema": "^1.1.0",
+    "mysql": "^2.10.2"
+  },
+  "deprecated": false,
+  "description": "import .sql files using NodeJS",
+  "devDependencies": {
+    "eslint": "^2.5.1",
+    "eslint-plugin-jasmine": "^1.6.0",
+    "eslint-plugin-node": "^1.0.0"
+  },
+  "engines": {
+    "node": ">5.0.0"
+  },
+  "homepage": "https://github.com/pamblam/mysql-import#readme",
+  "keywords": [
+    "nodejs",
+    "mysql",
+    "textfiles",
+    "import",
+    "sql"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "name": "mysql-import",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pamblam/mysql-import.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}
