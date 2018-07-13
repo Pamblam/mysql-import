@@ -1,18 +1,21 @@
 {
-  "author": {
-    "name": "Mark J Tyers, Rob Parham"
-  },
+  "author": "Rob Parham",
   "bugs": {
     "url": "https://github.com/pamblam/mysql-import/issues"
   },
   "bundleDependencies": false,
   "dependencies": {
-    "jsonschema": "^1.1.0",
     "mysql": "^2.10.2"
   },
   "deprecated": false,
-  "description": "import .sql files using NodeJS",
-  "devDependencies": {},
+  "description": "Import .sql into a MySQL database with Node.",
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "grunt": "^1.0.3",
+    "grunt-contrib-concat": "^1.0.1",
+    "grunt-string-replace": "^1.3.1",
+    "mocha": "^5.2.0"
+  },
   "engines": {
     "node": ">5.0.0"
   },
@@ -25,14 +28,15 @@
     "sql"
   ],
   "license": "MIT",
-  "main": "index.js",
+  "main": "mysql-import.js",
   "name": "mysql-import",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pamblam/mysql-import.git"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "node_modules/grunt/bin/grunt",
+    "test": "node node_modules/.bin/mocha"
   },
-  "version": "1.0.1"
+  "version": "1.0.3"
 }

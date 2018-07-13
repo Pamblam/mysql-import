@@ -1,31 +1,57 @@
+/**
+ * mysql-import - v1.0.3
+ * Import .sql into a MySQL database with Node.
+ * @author Rob Parham
+ * @website https://github.com/pamblam/mysql-import#readme
+ * @license MIT
+ */
+
 'use strict';
 
 const mysql = require('mysql');
 const fs = require('fs');
-const Validator = require('jsonschema').Validator;
-const v = new Validator();
-var conn;
-
-const query = (sql, p=[]) => new Promise((resolve, reject)=> conn.query(sql, p, (err, result)=>{ if (err) reject(err); else resolve(result); }));
+var conn, err_handler;
 
 const importer = {
 	
+	version: '1.0.3',
+	
 	import: filename => {
+		
 		var queriesString = fs.readFileSync(filename, 'utf8');
+		
 		var queries = parseQueries(queriesString);
-		return slowLoop(queries, (q,i,d)=>query(q).then(d)) // 47668ms
-		//return Promise.all(queries.map(query)); // 48921ms
+		
+		return slowLoop(queries, (q,i,d)=>{
+			try{
+				conn.query(q, err=>{
+					if (err) err_handler(err); 
+					else d();
+				});
+			}catch(e){
+				err_handler(err); 
+			}
+		});
+		
 	},
 	
-	config: data => {
-		const valid = v.validate(data, {
-			'host': {'type': 'string'},
-			'user': {'type': 'string'},
-			'password': {'type': 'string'},
-			'database': {'type': 'string'}
-		});
-		if(!valid) throw new Error("Invalid host, user, password, or database parameters");
-		conn = mysql.createConnection(data);
+	config: settings => {
+		
+		const valid = settings.hasOwnProperty('host') && typeof settings.host === "string" &&
+			settings.hasOwnProperty('user') && typeof settings.user === "string" &&
+			settings.hasOwnProperty('password') && typeof settings.password === "string" &&
+			settings.hasOwnProperty('database') && typeof settings.database === "string";
+	
+		if(!settings.hasOwnProperty("onerror") || typeof settings.onerror !== "function"){
+			settings.onerror = err=>{ throw err };
+		}
+		
+		err_handler = settings.onerror;
+		
+		if(!valid) return settings.onerror(new Error("Invalid host, user, password, or database parameters"));
+		
+		conn = mysql.createConnection(settings);
+		
 		return importer;
 	}
 	

@@ -1,10 +1,30 @@
 
-var config = {host: 'localhost', user: 'root', password: 'bijoux22', database: 'testdb'};
+const expect = require('chai').expect;
 
-const con = require('mysql').createConnection({host: config.host, user: config.user, password: config.password});
-const importer = require('../index.js').config(config);
+var error_handler = err=>console.log("something went wrong: ", err.message);
 
-const query = (sql, p=[]) => new Promise( done=> con.query(sql, p, (err, result)=>{ if (err) throw err; done(result); }));
+var config = {
+	host: 'localhost', 
+	user: 'root', 
+	password: 'bijoux22', 
+	database: 'testdb',
+	onerror: error_handler
+};
+
+const con = require('mysql').createConnection({
+	host: config.host, 
+	user: config.user, 
+	password: config.password
+});
+
+const importer = require('../mysql-import.js').config(config);
+
+const query = sql => new Promise(done=>{
+	con.query(sql, (err, result)=>{
+		if(err) error_handler(err);
+		else done(result);
+	});
+});
 
 var startTime = new Date().getTime();
 
