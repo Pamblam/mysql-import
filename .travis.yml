@@ -3,6 +3,3 @@ node_js:
   - "node"
 services:
   - mysql
-before_install:
-  - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('bijoux22') where User='root'; FLUSH PRIVILEGES;"
-  - sudo service mysql restart

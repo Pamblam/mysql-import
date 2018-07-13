@@ -6,7 +6,7 @@ var error_handler = err=>console.log("something went wrong: ", err.message);
 var config = {
 	host: '127.0.0.1', 
 	user: 'root', 
-	password: 'bijoux22', 
+	password: '', 
 	database: 'testdb',
 	onerror: error_handler
 };
