@@ -25,7 +25,7 @@ INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (14,'Var x = function(){s
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (15,'Make function run only once',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (16,'Why Caching is Important for React Users',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (17,'Javascripts Loops and Iterations Completely Explained 11 - [JavaScript C...',NULL);
-INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (18,'Legal question about hosting answers in repo on sites like leetcode?',NULL);
+INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (18,'Legal question "about hosting answ;ers in repo" on sites lik;e leetcode?',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (19,'Expand Bootstrap collapsible at POST event in Express',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (20,'What are the nastiest, trickiest, JavaScript questions you can think of?',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (21,'Im trying to get my head around prototypal inheritance in JS. Could someone help me out please?',NULL);

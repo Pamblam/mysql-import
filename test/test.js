@@ -11,7 +11,7 @@ var error_handler = err=>{
 var config = {
 	host: '127.0.0.1', 
 	user: 'root', 
-	password: '', 
+	password: 'bijoux22', 
 	database: 'testdb',
 	onerror: error_handler
 };

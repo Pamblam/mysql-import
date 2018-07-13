@@ -11,10 +11,12 @@ const importer = {
 		return slowLoop(queries, (q,i,d)=>{
 			try{
 				conn.query(q, err=>{
+					/* istanbul ignore next */
 					if (err) err_handler(err); 
 					else d();
 				});
 			}catch(e){
+				/* istanbul ignore next */
 				err_handler(err); 
 			}
 		});
@@ -28,12 +30,14 @@ const importer = {
 			settings.hasOwnProperty('password') && typeof settings.password === "string" &&
 			settings.hasOwnProperty('database') && typeof settings.database === "string";
 	
+		/* istanbul ignore next */
 		if(!settings.hasOwnProperty("onerror") || typeof settings.onerror !== "function"){
 			settings.onerror = err=>{ throw err };
 		}
 		
 		err_handler = settings.onerror;
 		
+		/* istanbul ignore next */
 		if(!valid) return settings.onerror(new Error("Invalid host, user, password, or database parameters"));
 		
 		conn = mysql.createConnection(settings);
