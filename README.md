@@ -3,7 +3,7 @@
 
 # mysql-import
 
-*Version 1.0.3*
+*Version 1.0.5*
 
 Import MySQL files with Node!
 

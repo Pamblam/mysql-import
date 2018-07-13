@@ -29,6 +29,7 @@ function parseQueries(queriesString) {
 			lastQuoteIndex = 0;
 		}
 	}
+	/* istanbul ignore next */
 	if (!!quoteType) {
 		buffer_str = buffer.join('');
 		var re_parse = buffer_str.substr(lastQuoteIndex + 1);

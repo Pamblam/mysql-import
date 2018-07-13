@@ -1,5 +1,5 @@
 /**
- * mysql-import - v1.0.3
+ * mysql-import - v1.0.5
  * Import .sql into a MySQL database with Node.
  * @author Rob Parham
  * @website https://github.com/pamblam/mysql-import#readme
@@ -14,7 +14,7 @@ var conn, err_handler;
 
 const importer = {
 	
-	version: '1.0.3',
+	version: '1.0.5',
 	
 	import: filename => {
 		
@@ -25,10 +25,12 @@ const importer = {
 		return slowLoop(queries, (q,i,d)=>{
 			try{
 				conn.query(q, err=>{
+					/* istanbul ignore next */
 					if (err) err_handler(err); 
 					else d();
 				});
 			}catch(e){
+				/* istanbul ignore next */
 				err_handler(err); 
 			}
 		});
@@ -42,12 +44,14 @@ const importer = {
 			settings.hasOwnProperty('password') && typeof settings.password === "string" &&
 			settings.hasOwnProperty('database') && typeof settings.database === "string";
 	
+		/* istanbul ignore next */
 		if(!settings.hasOwnProperty("onerror") || typeof settings.onerror !== "function"){
 			settings.onerror = err=>{ throw err };
 		}
 		
 		err_handler = settings.onerror;
 		
+		/* istanbul ignore next */
 		if(!valid) return settings.onerror(new Error("Invalid host, user, password, or database parameters"));
 		
 		conn = mysql.createConnection(settings);
@@ -112,6 +116,7 @@ function parseQueries(queriesString) {
 			lastQuoteIndex = 0;
 		}
 	}
+	/* istanbul ignore next */
 	if (!!quoteType) {
 		buffer_str = buffer.join('');
 		var re_parse = buffer_str.substr(lastQuoteIndex + 1);
