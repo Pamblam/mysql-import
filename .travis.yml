@@ -3,3 +3,5 @@ node_js:
   - "node"
 services:
   - mysql
+script: npm run coverage
+after_success: 'npm run coveralls'
