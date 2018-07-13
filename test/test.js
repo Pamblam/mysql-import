@@ -30,9 +30,9 @@ var startTime = new Date().getTime();
 
 console.log("Creating test DB");
 query("create database if not exists testdb").then(()=>query("use testdb")).then(()=>{
-	
+	console.log(__dirname);
 	console.log("Importing test dump");
-	importer.import('./test.sql').then(()=>{
+	importer.import(__dirname+'/test.sql').then(()=>{
 		
 		query("select * from importtest").then(res=>{
 			console.log(`${res.length} rows inputted.`);
