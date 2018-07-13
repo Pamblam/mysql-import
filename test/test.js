@@ -34,31 +34,34 @@ const query = sql => new Promise(done=>{
 var startTime = new Date().getTime();
 
 console.log("Creating test DB");
-query("create database if not exists testdb").then(()=>query("use testdb")).then(()=>{
 
-	console.log("Importing test dump");
-	importer.import(__dirname+'/test.sql').then(()=>{
+describe('All tests passed.', ()=>{
+	it('No errors thrown.', done=>{
 		
-		query("select * from importtest").then(res=>{
-			console.log(`${res.length} rows inputted.`);
-			
-			query("select * from importtest where doc like \"%;%\"").then(res=>{
-				console.log(`There are ${res.length} entries with a semicolon.`);
+		query("create database if not exists testdb").then(()=>query("use testdb")).then(()=>{
 
-				query("drop database testdb").then(()=>{
-					var time = new Date().getTime() - startTime;
-					console.log("test complete in "+time+"ms");	
-					describe('All tests passed.', ()=>{
-						it('No errors thrown.', ()=>{
+			console.log("Importing test dump");
+			importer.import(__dirname+'/test.sql').then(()=>{
+
+				query("select * from importtest").then(res=>{
+					console.log(`${res.length} rows inputted.`);
+
+					query("select * from importtest where doc like \"%;%\"").then(res=>{
+						console.log(`There are ${res.length} entries with a semicolon.`);
+
+						query("drop database testdb").then(()=>{
+							var time = new Date().getTime() - startTime;
+							console.log("test complete in "+time+"ms");	
 							expect(passed).to.be.true;
 						});
+
 					});
+
 				});
 
 			});
-			
 		});
+		
 		
 	});
 });
-
