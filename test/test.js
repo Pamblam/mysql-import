@@ -53,6 +53,7 @@ describe('All tests passed.', ()=>{
 							var time = new Date().getTime() - startTime;
 							console.log("test complete in "+time+"ms");	
 							expect(passed).to.be.true;
+							done();
 						});
 
 					});
