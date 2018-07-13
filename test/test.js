@@ -53,7 +53,6 @@ query("create database if not exists testdb").then(()=>query("use testdb")).then
 							expect(passed).to.be.true;
 						});
 					});
-					process.exit();
 				});
 
 			});
