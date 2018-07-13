@@ -32,7 +32,7 @@ console.log("Creating test DB");
 query("create database if not exists testdb").then(()=>query("use testdb")).then(()=>{
 	
 	console.log("Importing test dump");
-	importer.import('test.sql').then(()=>{
+	importer.import('./test.sql').then(()=>{
 		
 		query("select * from importtest").then(res=>{
 			console.log(`${res.length} rows inputted.`);
