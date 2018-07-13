@@ -1,7 +1,12 @@
 
 const expect = require('chai').expect;
 
-var error_handler = err=>console.log("something went wrong: ", err.message);
+var passed = true;
+
+var error_handler = err=>{
+	passed = false;
+	console.log("something went wrong: ", err.message)
+};
 
 var config = {
 	host: '127.0.0.1', 
@@ -30,7 +35,7 @@ var startTime = new Date().getTime();
 
 console.log("Creating test DB");
 query("create database if not exists testdb").then(()=>query("use testdb")).then(()=>{
-	console.log(__dirname);
+
 	console.log("Importing test dump");
 	importer.import(__dirname+'/test.sql').then(()=>{
 		
@@ -42,7 +47,12 @@ query("create database if not exists testdb").then(()=>query("use testdb")).then
 
 				query("drop database testdb").then(()=>{
 					var time = new Date().getTime() - startTime;
-					console.log("test complete in "+time+"ms");					
+					console.log("test complete in "+time+"ms");	
+					describe('All tests passed.', ()=>{
+						it('No errors thrown.', ()=>{
+							expect(passed).to.be.true;
+						});
+					});
 					process.exit();
 				});
 
