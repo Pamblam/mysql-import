@@ -64,5 +64,5 @@ describe('All tests passed.', ()=>{
 		});
 		
 		
-	});
+	}).timeout(0);
 });
