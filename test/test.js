@@ -33,11 +33,10 @@ const query = sql => new Promise(done=>{
 
 var startTime = new Date().getTime();
 
-console.log("Creating test DB");
-
 describe('All tests passed.', ()=>{
 	it('No errors thrown.', done=>{
 		
+		console.log("Creating test DB");
 		query("create database if not exists testdb").then(()=>query("use testdb")).then(()=>{
 
 			console.log("Importing test dump");
@@ -50,10 +49,13 @@ describe('All tests passed.', ()=>{
 						console.log(`There are ${res.length} entries with a semicolon.`);
 
 						query("drop database testdb").then(()=>{
+							
 							var time = new Date().getTime() - startTime;
 							console.log("test complete in "+time+"ms");	
 							expect(passed).to.be.true;
 							done();
+							process.exit();
+							
 						});
 
 					});
@@ -62,7 +64,6 @@ describe('All tests passed.', ()=>{
 
 			});
 		});
-		
 		
 	}).timeout(0);
 });
