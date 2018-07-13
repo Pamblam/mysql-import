@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 var error_handler = err=>console.log("something went wrong: ", err.message);
 
 var config = {
-	host: 'localhost', 
+	host: '127.0.0.1', 
 	user: 'root', 
 	password: 'bijoux22', 
 	database: 'testdb',
