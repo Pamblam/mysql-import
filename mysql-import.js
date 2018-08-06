@@ -1,5 +1,5 @@
 /**
- * mysql-import - v1.0.5
+ * mysql-import - v1.0.7
  * Import .sql into a MySQL database with Node.
  * @author Rob Parham
  * @website https://github.com/pamblam/mysql-import#readme
@@ -10,55 +10,51 @@
 
 const mysql = require('mysql');
 const fs = require('fs');
-var conn, err_handler;
 
-const importer = {
-	
-	version: '1.0.5',
-	
-	import: filename => {
-		
+class importer{
+	constructor(conn, err_handler){
+		this.conn = conn;
+		this.err_handler = err_handler;
+	}
+	import(filename){
 		var queriesString = fs.readFileSync(filename, 'utf8');
 		
 		var queries = parseQueries(queriesString);
 		
 		return slowLoop(queries, (q,i,d)=>{
 			try{
-				conn.query(q, err=>{
+				this.conn.query(q, err=>{
 					/* istanbul ignore next */
-					if (err) err_handler(err); 
+					if (err) this.err_handler(err); 
 					else d();
 				});
 			}catch(e){
 				/* istanbul ignore next */
-				err_handler(err); 
+				this.err_handler(e); 
 			}
 		});
-		
-	},
-	
-	config: settings => {
-		
-		const valid = settings.hasOwnProperty('host') && typeof settings.host === "string" &&
-			settings.hasOwnProperty('user') && typeof settings.user === "string" &&
-			settings.hasOwnProperty('password') && typeof settings.password === "string" &&
-			settings.hasOwnProperty('database') && typeof settings.database === "string";
-	
-		/* istanbul ignore next */
-		if(!settings.hasOwnProperty("onerror") || typeof settings.onerror !== "function"){
-			settings.onerror = err=>{ throw err };
-		}
-		
-		err_handler = settings.onerror;
-		
-		/* istanbul ignore next */
-		if(!valid) return settings.onerror(new Error("Invalid host, user, password, or database parameters"));
-		
-		conn = mysql.createConnection(settings);
-		
-		return importer;
 	}
-	
+}
+importer.version = '1.0.7';
+importer.config = function(settings){
+	const valid = settings.hasOwnProperty('host') && typeof settings.host === "string" &&
+		settings.hasOwnProperty('user') && typeof settings.user === "string" &&
+		settings.hasOwnProperty('password') && typeof settings.password === "string" &&
+		settings.hasOwnProperty('database') && typeof settings.database === "string";
+
+	/* istanbul ignore next */
+	if(!settings.hasOwnProperty("onerror") || typeof settings.onerror !== "function"){
+		settings.onerror = err=>{ throw err };
+	}
+
+	var err_handler = settings.onerror;
+
+	/* istanbul ignore next */
+	if(!valid) return settings.onerror(new Error("Invalid host, user, password, or database parameters"));
+
+	var conn = mysql.createConnection(settings);
+
+	return new importer(conn, err_handler);
 };
 
 module.exports = importer;
