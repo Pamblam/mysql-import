@@ -4,6 +4,7 @@
  * @returns {Array|parseQueries.queries|nm$_index.parseQueries.queries}
  */
 function parseQueries(queriesString) {
+	queriesString=queriesString.trim();
 	var quoteType = false;
 	var queries = [];
 	var buffer = [];
