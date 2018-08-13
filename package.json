@@ -42,5 +42,5 @@
     "coverage": "node node_modules/.bin/istanbul cover _mocha -- -R spec",
     "coveralls": "cat ./coverage/lcov.info | node node_modules/.bin/coveralls"
   },
-  "version": "1.0.7"
+  "version": "1.0.8"
 }
