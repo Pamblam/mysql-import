@@ -1,9 +1,11 @@
 
 
 
-# mysql-import
+<p align="center">
+	<img src='https://i.imgur.com/AOfuTLA.png'>
+</p>
 
-*Version 1.0.11* 
+*Version 1.0.12* 
 
 [![Build Status](https://api.travis-ci.org/Pamblam/mysql-import.svg?branch=master)](https://travis-ci.org/Pamblam/mysql-import/) [![Coverage Status](https://coveralls.io/repos/github/Pamblam/mysql-import/badge.svg?branch=master)](https://coveralls.io/github/Pamblam/mysql-import?branch=master)
 
