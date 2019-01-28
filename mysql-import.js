@@ -1,5 +1,5 @@
 /**
- * mysql-import - v1.0.9
+ * mysql-import - v1.0.11
  * Import .sql into a MySQL database with Node.
  * @author Rob Parham
  * @website https://github.com/pamblam/mysql-import#readme
@@ -17,25 +17,28 @@ class importer{
 		this.err_handler = err_handler;
 	}
 	import(filename){
-		var queriesString = fs.readFileSync(filename, 'utf8');
-		
-		var queries = parseQueries(queriesString);
-		
-		return slowLoop(queries, (q,i,d)=>{
-			try{
-				this.conn.query(q, err=>{
+		return new Promise(done=>{
+			var queriesString = fs.readFileSync(filename, 'utf8');
+			var queries = parseQueries(queriesString);
+			slowLoop(queries, (q,i,d)=>{
+				try{
+					this.conn.query(q, err=>{
+						/* istanbul ignore next */
+						if (err) this.err_handler(err); 
+						else d();
+					});
+				}catch(e){
 					/* istanbul ignore next */
-					if (err) this.err_handler(err); 
-					else d();
-				});
-			}catch(e){
-				/* istanbul ignore next */
-				this.err_handler(e); 
-			}
+					this.err_handler(e); 
+				}
+			}).then(()=>{
+				this.conn.end();
+				done();
+			});
 		});
 	}
 }
-importer.version = '1.0.9';
+importer.version = '1.0.11';
 importer.config = function(settings){
 	const valid = settings.hasOwnProperty('host') && typeof settings.host === "string" &&
 		settings.hasOwnProperty('user') && typeof settings.user === "string" &&

@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for mysql-import/mysql-import.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">mysql-import/</a> mysql-import.js
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">42.31% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>33/78</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">37.04% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>20/54</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">40% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>2/5</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">43.48% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>30/69</span>
+      </div>
+      <div class='fl pad1y'>
+        <span class="strong">18 statements, 8 branches</span>
+        <span class="quiet">Ignored</span>  &nbsp;&nbsp;&nbsp;&nbsp;
+      </div>
+    </div>
+  </div>
+  <div class='status-line low'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
+ * mysql-import - v1.0.11
+ * Import .sql into a MySQL database with Node.
+ * @author Rob Parham
+ * @website https://github.com/pamblam/mysql-import#readme
+ * @license MIT
+ */
+&nbsp;
+'use strict';
+&nbsp;
+const mysql = require('mysql');
+const fs = require('fs');
+&nbsp;
+class importer{
+	constructor(conn, err_handler){
+		this.conn = conn;
+		this.err_handler = err_handler;
+	}
+	import<span class="fstat-no" title="function not covered" >(filename){</span>
+<span class="cstat-no" title="statement not covered" >		return new Promise(done=&gt;{</span>
+<span class="cstat-no" title="statement not covered" >			var queriesString = fs.readFileSync(filename, 'utf8');</span>
+<span class="cstat-no" title="statement not covered" >			var queries = parseQueries(queriesString);</span>
+<span class="cstat-no" title="statement not covered" >			slowLoop(queries, (q,i,d)=&gt;{</span>
+<span class="cstat-no" title="statement not covered" >				try{</span>
+<span class="cstat-no" title="statement not covered" >					this.conn.query(q, err=&gt;{</span>
+						/* istanbul ignore next */
+<span class="cstat-skip" title="statement not covered" >						if (err) <span class="cstat-skip" title="statement not covered" >this.err_handler(err); </span></span>
+						else <span class="cstat-skip" title="statement not covered" >d();</span>
+					});
+				}catch(e){
+					/* istanbul ignore next */
+<span class="cstat-skip" title="statement not covered" >					this.err_handler(e); </span>
+				}
+			}).then(()=&gt;{
+<span class="cstat-no" title="statement not covered" >				this.conn.end();</span>
+<span class="cstat-no" title="statement not covered" >				done();</span>
+			});
+		});
+	}
+}
+importer.version = '1.0.11';
+importer.config = function(settings){
+	const valid = settings.hasOwnProperty('host') &amp;&amp; typeof settings.host === "string" &amp;&amp;
+		settings.hasOwnProperty('user') &amp;&amp; typeof settings.user === "string" &amp;&amp;
+		settings.hasOwnProperty('password') &amp;&amp; typeof settings.password === "string" &amp;&amp;
+		settings.hasOwnProperty('database') &amp;&amp; typeof settings.database === "string";
+&nbsp;
+	/* istanbul ignore next */
+	<span class="skip-if-branch" title="if path not taken" >I</span>if(!settings.hasOwnProperty("onerror") || typeof settings.onerror !== "function"){
+<span class="cstat-skip" title="statement not covered" >		settings.onerror = err=&gt;{ <span class="cstat-skip" title="statement not covered" >throw err }</span>;</span>
+	}
+&nbsp;
+	var err_handler = settings.onerror;
+&nbsp;
+	/* istanbul ignore next */
+	<span class="skip-if-branch" title="if path not taken" >I</span>if(!valid) <span class="cstat-skip" title="statement not covered" >return settings.onerror(new Error("Invalid host, user, password, or database parameters"));</span>
+&nbsp;
+	var conn = mysql.createConnection(settings);
+&nbsp;
+	return new importer(conn, err_handler);
+};
+&nbsp;
+module.exports = importer;
+&nbsp;
+/**
+ * Execute the loopBody function once for each item in the items array, 
+ * waiting for the done function (which is passed into the loopBody function)
+ * to be called before proceeding to the next item in the array.
+ * @param {Array} items - The array of items to iterate through
+ * @param {Function} loopBody - A function to execute on each item in the array.
+ *		This function is passed 3 arguments - 
+ *			1. The item in the current iteration,
+ *			2. The index of the item in the array,
+ *			3. A function to be called when the iteration may continue.
+ * @returns {Promise} - A promise that is resolved when all the items in the 
+ *		in the array have been iterated through.
+ */
+<span class="fstat-no" title="function not covered" >function slowLoop(items, loopBody) {</span>
+<span class="cstat-no" title="statement not covered" >	return new Promise(f =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >		let done = arguments[2] || f;</span>
+<span class="cstat-no" title="statement not covered" >		let idx = arguments[3] || 0;</span>
+<span class="cstat-no" title="statement not covered" >		let cb = items[idx + 1] ? () =&gt; <span class="cstat-no" title="statement not covered" >slowLoop(items, loopBody, done, idx + 1) </span>: done;</span>
+<span class="cstat-no" title="statement not covered" >		loopBody(items[idx], idx, cb);</span>
+	});
+}
+&nbsp;
+/**
+ * Split up the dump file into a bunch of seperate queries
+ * @param {type} queriesString
+ * @returns {Array|parseQueries.queries|nm$_index.parseQueries.queries}
+ */
+<span class="fstat-no" title="function not covered" >function parseQueries(queriesString) {</span>
+<span class="cstat-no" title="statement not covered" >	queriesString=queriesString.trim();</span>
+<span class="cstat-no" title="statement not covered" >	var quoteType = false;</span>
+<span class="cstat-no" title="statement not covered" >	var queries = [];</span>
+<span class="cstat-no" title="statement not covered" >	var buffer = [];</span>
+<span class="cstat-no" title="statement not covered" >	var escaped = false;</span>
+<span class="cstat-no" title="statement not covered" >	var lastQuoteIndex;</span>
+<span class="cstat-no" title="statement not covered" >	var bufferIndex = 0;</span>
+<span class="cstat-no" title="statement not covered" >	for (let i = 0; i &lt; queriesString.length; i++) {</span>
+<span class="cstat-no" title="statement not covered" >		var char = queriesString[i];</span>
+<span class="cstat-no" title="statement not covered" >		var last_char = buffer.length ? buffer[buffer.length - 1] : "";</span>
+<span class="cstat-no" title="statement not covered" >		buffer.push(char);</span>
+<span class="cstat-no" title="statement not covered" >		if (last_char == "\\") <span class="cstat-no" title="statement not covered" >escaped = !escaped;</span></span>
+		else <span class="cstat-no" title="statement not covered" >escaped = false;</span>
+<span class="cstat-no" title="statement not covered" >		var isQuote = (char == '"' || char == "'") &amp;&amp; !escaped;</span>
+<span class="cstat-no" title="statement not covered" >		if (isQuote &amp;&amp; quoteType == char) <span class="cstat-no" title="statement not covered" >quoteType = false;</span></span>
+		else <span class="cstat-no" title="statement not covered" >if (isQuote &amp;&amp; !quoteType) <span class="cstat-no" title="statement not covered" >quoteType = char;</span></span>
+<span class="cstat-no" title="statement not covered" >		if (isQuote) <span class="cstat-no" title="statement not covered" >lastQuoteIndex = lastQuoteIndex || bufferIndex;</span></span>
+<span class="cstat-no" title="statement not covered" >		bufferIndex++;</span>
+<span class="cstat-no" title="statement not covered" >		var isNewLine = char == "\n" || char == "\r";</span>
+<span class="cstat-no" title="statement not covered" >		if (last_char == ";" &amp;&amp; isNewLine &amp;&amp; false == quoteType) {</span>
+<span class="cstat-no" title="statement not covered" >			queries.push(buffer.join(''));</span>
+<span class="cstat-no" title="statement not covered" >			buffer = [];</span>
+<span class="cstat-no" title="statement not covered" >			bufferIndex = 0;</span>
+<span class="cstat-no" title="statement not covered" >			lastQuoteIndex = 0;</span>
+		}
+	}
+	/* istanbul ignore next */
+<span class="cstat-skip" title="statement not covered" >	if (!!quoteType) {</span>
+<span class="cstat-skip" title="statement not covered" >		buffer_str = buffer.join('');</span>
+<span class="cstat-skip" title="statement not covered" >		var re_parse = buffer_str.substr(lastQuoteIndex + 1);</span>
+<span class="cstat-skip" title="statement not covered" >		buffer = buffer_str.substr(0, lastQuoteIndex + 1).split('');</span>
+<span class="cstat-skip" title="statement not covered" >		var newParts = parseQueries(re_parse);</span>
+<span class="cstat-skip" title="statement not covered" >		if (newParts.length) {</span>
+<span class="cstat-skip" title="statement not covered" >			var contd = newParts.pop().split('');</span>
+<span class="cstat-skip" title="statement not covered" >			buffer = [...buffer, ...contd];</span>
+<span class="cstat-skip" title="statement not covered" >			queries.push(buffer.join(''));</span>
+<span class="cstat-skip" title="statement not covered" >			buffer = [];</span>
+<span class="cstat-skip" title="statement not covered" >			queries = [...queries, ...newParts];</span>
+		}
+	}
+<span class="cstat-no" title="statement not covered" >	if (buffer.length) <span class="cstat-no" title="statement not covered" >queries.push(buffer.join(''));</span></span>
+<span class="cstat-no" title="statement not covered" >	return queries;</span>
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Mon Jan 28 2019 16:30:06 GMT-0500 (EST)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>
