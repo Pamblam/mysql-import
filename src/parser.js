@@ -32,7 +32,7 @@ function parseQueries(queriesString) {
 	}
 	/* istanbul ignore next */
 	if (!!quoteType) {
-		buffer_str = buffer.join('');
+		var buffer_str = buffer.join('');
 		var re_parse = buffer_str.substr(lastQuoteIndex + 1);
 		buffer = buffer_str.substr(0, lastQuoteIndex + 1).split('');
 		var newParts = parseQueries(re_parse);
