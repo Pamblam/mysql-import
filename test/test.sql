@@ -1,12 +1,14 @@
 
+DELIMITER &&
+
 CREATE TABLE IF NOT EXISTS `importtest` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `doc` varchar(10000) NOT NULL,
   `classid` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=979 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=979 DEFAULT CHARSET=utf8&&
 
-
+DELIMITER ;
 
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (1,'I made this free tool for learning JavaScript (it\'s like Duolingo for learning to code)',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (2,'Assign function return value to object property',NULL);

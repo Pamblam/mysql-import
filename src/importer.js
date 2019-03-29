@@ -6,7 +6,7 @@ class importer{
 	import(filename){
 		return new Promise(done=>{
 			var queriesString = fs.readFileSync(filename, 'utf8');
-			var queries = parseQueries(queriesString);
+			var queries = new queryParser(queriesString).queries;
 			slowLoop(queries, (q,i,d)=>{
 				try{
 					this.conn.query(q, err=>{
