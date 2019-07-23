@@ -25,7 +25,10 @@ class queryParser{
 		
 		// Are we currently seeking new delimiter
 		this.seekingDelimiter = false;
-		
+
+		// Does the sql set change delimiter?
+                this.hasDelimiter = queriesString.includes('DELIMITER ');
+
 		// Iterate over each char in the string
 		for (let i = 0; i < this.queriesString.length; i++) {
 			let char = this.queriesString[i];
@@ -37,7 +40,11 @@ class queryParser{
 	parseChar(char){
 		this.checkEscapeChar();
 		this.buffer.push(char);
-		this.checkNewDelimiter(char);
+
+		if (this.hasDelimiter) {
+		  this.checkNewDelimiter(char);
+		}
+
 		this.checkQuote(char);
 		this.checkEndOfQuery();
 	}
