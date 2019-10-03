@@ -22,7 +22,7 @@ function errorHandler(err){
 function query(sql){ 
 	return new Promise(done=>{
 		con.query(sql, (err, result)=>{
-			if(err) error_handler(err);
+			if(err) errorHandler(err);
 			else done(result);
 		});
 	});
