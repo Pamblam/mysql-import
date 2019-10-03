@@ -3,7 +3,7 @@
 // RESET THEM TO '' BEFORE COMMITING CHANGES!
 const mysql_host = '';
 const mysql_user = '';
-const mysql_pass = 'ourtown1972';
+const mysql_pass = '';
 
 const expect = require('chai').expect;
 const {errorHandler,query,mysqlConnect,createTestDB,destroyTestDB} = require('./test-helpers.js');
