@@ -17,7 +17,7 @@ Wanna contribute? That's awesome! I work full-time and when I'm not working I'm 
    2. If necessary, update the readme to explain any usage changes.
    3. Run `npm run build` to build the project.
  - **Test your contributions**
-   1. In `/test/test.js` update the `config` object so it can connect to your local MySQL instance.
+   1. In `/test/test.js` update the username and password variables at the top so it can connect to your local MySQL instance.
    2. Run `npm run test` to run the tests. If all the tests pass you may submit your PR.
  - **Submitting your Contribution (Pull Request)** 
    1. Revert any changes made to the `test.js` file. This is important. You'll be publishing private info and you'll break the coverage tests if you commit changes to this file .

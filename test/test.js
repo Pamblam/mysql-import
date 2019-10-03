@@ -1,71 +1,50 @@
 
+// SET THESE FOR LOCAL TESTING ONLY!
+// RESET THEM TO '' BEFORE COMMITING CHANGES!
+const mysql_host = '';
+const mysql_user = '';
+const mysql_pass = 'ourtown1972';
+
 const expect = require('chai').expect;
-
-var passed = true;
-
-var error_handler = err=>{
-	passed = false;
-	console.log("something went wrong: ", err.message);
-	console.error(err);
-	process.exit();
-};
+const {errorHandler,query,mysqlConnect,createTestDB,destroyTestDB} = require('./test-helpers.js');
 
 var config = {
-	host: '127.0.0.1', 
-	user: 'root', 
-	password: '', 
+	host: mysql_host || '127.0.0.1', 
+	user: mysql_user || 'root', 
+	password: mysql_pass || '', 
 	database: 'testdb',
-	onerror: error_handler
+	onerror: errorHandler
 };
 
-const con = require('mysql').createConnection({
-	host: config.host, 
-	user: config.user, 
-	password: config.password
-});
+mysqlConnect(config);
 
 const importer = require('../mysql-import.js').config(config);
+const start_time = new Date();
 
-const query = sql => new Promise(done=>{
-	con.query(sql, (err, result)=>{
-		if(err) error_handler(err);
-		else done(result);
+describe('Running All Tests', ()=>{
+	
+	before(async ()=>{
+		await createTestDB();
+		await importer.import(__dirname+'/test.sql');
 	});
-});
+	
+	after(async ()=>{
+		await destroyTestDB();
+		console.log(`All tests completed in ${(new Date() - start_time)/1000} seconds.`);
+	});
+	
+	it('Import two tables', async ()=>{
+		var tables = await query("SHOW TABLES;");
+		expect(tables.length).to.equal(2);
+	});
 
-var startTime = new Date().getTime();
-
-describe('All tests passed.', ()=>{
-	it('No errors thrown.', done=>{
-		
-		console.log("Creating test DB");
-		query("create database if not exists testdb").then(()=>query("use testdb")).then(()=>{
-
-			console.log("Importing test dump");
-			importer.import(__dirname+'/test.sql').then(()=>{
-
-				query("select * from importtest").then(res=>{
-					console.log(`${res.length} rows inputted.`);
-
-					query("select * from importtest where doc like \"%;%\"").then(res=>{
-						console.log(`There are ${res.length} entries with a semicolon.`);
-
-						query("drop database testdb").then(()=>{
-							
-							var time = new Date().getTime() - startTime;
-							console.log("test complete in "+time+"ms");	
-							expect(passed).to.be.true;
-							done();
-							process.exit();
-							
-						});
-
-					});
-
-				});
-
-			});
-		});
-		
-	}).timeout(0);
+	it('978 Rows Imported Into Test DB', async ()=>{
+		var rows = await query("SELECT * FROM `IMPORTTEST`;");
+		expect(rows.length).to.equal(978);
+	});
+	
+	it('5 Rows With Semicolons Imported Into Test DB', async ()=>{
+		var rows = await query('SELECT * FROM `IMPORTTEST` WHERE `DOC` LIKE "%;%";');
+		expect(rows.length).to.equal(5);
+	});
 });
