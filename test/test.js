@@ -5,7 +5,9 @@ var passed = true;
 
 var error_handler = err=>{
 	passed = false;
-	console.log("something went wrong: ", err.message)
+	console.log("something went wrong: ", err.message);
+	console.error(err);
+	process.exit();
 };
 
 var config = {
