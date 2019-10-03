@@ -3,22 +3,25 @@ class importer{
 		this.conn = conn;
 		this.err_handler = err_handler;
 	}
-	async import(filename){
-		var queriesString = fs.readFileSync(filename, 'utf8');
-		var queries = new queryParser(queriesString).queries;
-		await slowLoop(queries, (q,i,d)=>{
-			try{
-				this.conn.query(q, err=>{
+	import(filename){
+		return new Promise(done=>{
+			var queriesString = fs.readFileSync(filename, 'utf8');
+			var queries = new queryParser(queriesString).queries;
+			slowLoop(queries, (q,i,d)=>{
+				try{
+					this.conn.query(q, err=>{
+						/* istanbul ignore next */
+						if (err) this.err_handler(err); 
+						else d();
+					});
+				}catch(e){
 					/* istanbul ignore next */
-					if (err) this.err_handler(err); 
-					else d();
-				});
-			}catch(e){
-				/* istanbul ignore next */
-				this.err_handler(e); 
-			}
+					this.err_handler(e); 
+				}
+			}).then(()=>{
+				this.conn.end();
+			});
 		});
-		this.conn.end();
 	};
 	
 }
