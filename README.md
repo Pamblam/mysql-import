@@ -1,11 +1,12 @@
 
 
 
+
 <p align="center">
 	<img src='https://i.imgur.com/AOfuTLA.png'>
 </p>
 
-*Version 2.0.3* 
+*Version 2.0.3* - [Github](https://github.com/Pamblam/mysql-import/) - [NPM](https://www.npmjs.com/package/mysql-import)
 
 [![Build Status](https://api.travis-ci.org/Pamblam/mysql-import.svg?branch=master)](https://travis-ci.org/Pamblam/mysql-import/) [![Coverage Status](https://coveralls.io/repos/github/Pamblam/mysql-import/badge.svg?branch=master)](https://coveralls.io/github/Pamblam/mysql-import?branch=master)
 
@@ -13,7 +14,7 @@ Import MySQL files with Node!
 
 ## Install
 ```
-$ npm install --save mysql-import
+$ npm install --save-dev mysql-import
 ```
 
 ## Usage
@@ -83,6 +84,10 @@ If you need to import to more than one database:
 	importer2.import('mydb2.sql').then(()=> {
     	console.log('DB2 has finished importing')
     });
+
+## Contributing
+
+Contributions are more than welcome! Please check out the [Contributing Guidelines](https://github.com/Pamblam/mysql-import/blob/master/CONTRIBUTING.md) for this project. 
 
 ## Credit where credit is due
 
