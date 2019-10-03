@@ -6,7 +6,7 @@
 	<img src='https://i.imgur.com/AOfuTLA.png'>
 </p>
 
-*Version 2.0.5* - [Github](https://github.com/Pamblam/mysql-import/) - [NPM](https://www.npmjs.com/package/mysql-import)
+*Version 2.0.6* - [Github](https://github.com/Pamblam/mysql-import/) - [NPM](https://www.npmjs.com/package/mysql-import)
 
 [![Build Status](https://api.travis-ci.org/Pamblam/mysql-import.svg?branch=master)](https://travis-ci.org/Pamblam/mysql-import/) [![Coverage Status](https://coveralls.io/repos/github/Pamblam/mysql-import/badge.svg?branch=master)](https://coveralls.io/github/Pamblam/mysql-import?branch=master)
 
