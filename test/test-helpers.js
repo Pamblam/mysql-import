@@ -46,8 +46,9 @@ function mysqlConnect(config){
  * @returns {undefined}
  */
 async function createTestDB(){
-	await query("CREATE DATABASE IF NOT EXISTS `testdb`;");
-	await query("use testdb");
+	await query("DROP DATABASE IF EXISTS `testdb`;");
+	await query("CREATE DATABASE `testdb`;");
+	await query("USE `testdb`;");
 }
 
 /**

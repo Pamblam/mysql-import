@@ -3,7 +3,7 @@
 // RESET THEM TO '' BEFORE COMMITING CHANGES!
 const mysql_host = '';
 const mysql_user = '';
-const mysql_pass = '';
+const mysql_pass = 'ourtown1972';
 
 const expect = require('chai').expect;
 const {errorHandler,query,mysqlConnect,createTestDB,destroyTestDB} = require('./test-helpers.js');
@@ -45,6 +45,17 @@ describe('Running All Tests', ()=>{
 	
 	it('5 Rows With Semicolons Imported Into Test DB', async ()=>{
 		var rows = await query('SELECT * FROM `importtest` WHERE `doc` LIKE "%;%";');
+		expect(rows.length).to.equal(5);
+	});
+	
+	it('Reuse Importer', async ()=>{
+		await importer.import(__dirname+'/test2.sql');
+		var tables = await query("SHOW TABLES;");
+		expect(tables.length).to.equal(3);
+	});
+	
+	it('5 Rows Inserted in 2nd Table', async ()=>{
+		var rows = await query("SELECT * FROM `test_table_2`;");
 		expect(rows.length).to.equal(5);
 	});
 });
