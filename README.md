@@ -2,6 +2,7 @@
 
 
 
+
 <p align="center">
 	<img src='https://i.imgur.com/AOfuTLA.png'>
 </p>
@@ -23,7 +24,7 @@ Include the package.
 
     const mysql_import = require('mysql-import');
 
-`mysql-import` exposes one methods and `version` property. `mysql_import.version` is a string showing the current version of the package.
+`mysql-import` exposes one method and a `version` property. `mysql_import.version` is a string showing the current version of the package.
 
 #### `mysql-import.config(Object settings)`
 
@@ -43,54 +44,35 @@ The `config` method returns a new `importer` instance.
 
 Import an `.sql` file to the database.
 
-The `import` method returns a Promise which is resolved when (and if) the file has completely imported. This promise is never rejected, if there is an error, the `onerror` function passed to the `config` method is called with the error object passed into it.
+The `import` method returns a Promise which is resolved when the import has completed. This promise is never rejected, if there is an error, the `onerror` function passed to the `config` method is called with the error object passed into it.
 
-*Note that each query in the text file must terminate with an unquoted semicolon (;) followed by a newline or the end of the file.*
+#### Example
 
-#### Examples
+```js
+const mysql_import = require('mysql-import');
 
-Do it in a single call if you only need to import a single file to a single DB:
+const mydb_importer = mysql_import.config({
+	host: 'localhost',
+	user: 'testuser',
+	password: 'testpwd',
+	database: 'mydb',
+	onerror: err=>console.log(err.message)
+});
+await mydb_importer.import('mydb.sql');
+await mydb_importer.import('mydb2.sql');
 
-    require('mysql-import').config({
-    	host: 'localhost',
-    	user: 'testuser',
-    	password: 'testpwd',
-    	database: 'mydb',
-		onerror: err=>console.log(err.message)
-    }).import('mydb.sql').then(()=> {
-    	console.log('all statements have been executed')
-    });
-
-If you need to import to more than one database:
-
-    const mysql_import = require('mysql-import');
-	var importer1 = mysql_import.config({
-    	host: 'localhost',
-    	user: 'testuser',
-    	password: 'testpwd',
-    	database: 'mydb',
-		onerror: err=>console.log(err.message)
-    });
-	var importer2 = mysql_import.config({
-    	host: 'localhost',
-    	user: 'testuser',
-    	password: 'testpwd',
-    	database: 'mydb2',
-		onerror: err=>console.log(err.message)
-    });
-	importer.import('mydb.sql').then(()=> {
-    	console.log('DB1 has finished importing')
-    });
-	importer2.import('mydb2.sql').then(()=> {
-    	console.log('DB2 has finished importing')
-    });
+// Each database requires it's own importer.
+const yourdb_importer = mysql_import.config({
+	host: 'localhost',
+	user: 'testuser',
+	password: 'testpwd',
+	database: 'yourdb',
+	onerror: err=>console.log(err.message)
+});
+await yourdb_importer.import('yourdb.sql');
+await yourdb_importer.import('yourdb.sql');
+```
 
 ## Contributing
 
 Contributions are more than welcome! Please check out the [Contributing Guidelines](https://github.com/Pamblam/mysql-import/blob/master/CONTRIBUTING.md) for this project. 
-
-## Credit where credit is due
-
-This is a fork of the node package [node-mysql-importer](https://www.npmjs.com/package/node-mysql-importer) originally created by [some European dude](https://github.com/marktyers/). I was using this as a dependency in another project and had a few issues (namely, semicolons in the import data causing errors). I left an issue on his repo and he promptly deleted (or hid) the repo, so I fixed it myself and will maintain my own copy. This one has a much more robust pre-parser, and is ~~almost~~ entirely re-written.
-
-Thanks for your work, Mark.
