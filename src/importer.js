@@ -3,28 +3,26 @@ class importer{
 		this.conn = conn;
 		this.err_handler = err_handler;
 	}
-	import(filename){
-		return new Promise(done=>{
-			var queriesString = fs.readFileSync(filename, 'utf8');
-			var queries = new queryParser(queriesString).queries;
-			slowLoop(queries, (q,i,d)=>{
-				try{
-					this.conn.query(q, err=>{
-						/* istanbul ignore next */
-						if (err) this.err_handler(err); 
-						else d();
-					});
-				}catch(e){
+	async import(filename){
+		var queriesString = fs.readFileSync(filename, 'utf8');
+		var queries = new queryParser(queriesString).queries;
+		await slowLoop(queries, (q,i,d)=>{
+			try{
+				this.conn.query(q, err=>{
 					/* istanbul ignore next */
-					this.err_handler(e); 
-				}
-			}).then(()=>{
-				this.conn.end();
-				done();
-			});
+					if (err) this.err_handler(err); 
+					else d();
+				});
+			}catch(e){
+				/* istanbul ignore next */
+				this.err_handler(e); 
+			}
 		});
-	}
+		this.conn.end();
+	};
+	
 }
+
 importer.version = '{{ VERSION }}';
 importer.config = function(settings){
 	const valid = settings.hasOwnProperty('host') && typeof settings.host === "string" &&
