@@ -1,5 +1,5 @@
 /**
- * mysql-import - v2.0.11
+ * mysql-import - v3.0.2
  * Import .sql into a MySQL database with Node.
  * @author Rob Parham
  * @website https://github.com/pamblam/mysql-import#readme
@@ -12,17 +12,30 @@ const mysql = require('mysql');
 const fs = require('fs');
 
 class importer{
-	constructor(conn, err_handler){
-		this.conn = conn;
-		this.err_handler = ()=>{
-			err_handler();
-			try{ 
-				this.conn.end(); 
-			}catch(e){}
+	constructor(settings, err_handler){
+		this.settings = settings;
+		this.conn = null;
+		this.err_handler = (e)=>{
+			err_handler(e);
+			this.disconnect();
 		}
 	}
+	
+	connect(){
+		this.conn = this.conn || mysql.createConnection(this.settings);
+	}
+	
+	disconnect(){
+		if(!this.conn) return;
+		try{ 
+			this.conn.end(); 
+		}catch(e){}
+		this.conn = null;
+	}
+	
 	import(filename){
 		return new Promise(done=>{
+			this.connect();
 			var queriesString = fs.readFileSync(filename, 'utf8');
 			var queries = new queryParser(queriesString).queries;
 			slowLoop(queries, (q,i,d)=>{
@@ -37,7 +50,7 @@ class importer{
 					this.err_handler(e); 
 				}
 			}).then(()=>{
-				this.conn.end();
+				this.disconnect();
 				done();
 			});
 		});
@@ -45,7 +58,7 @@ class importer{
 	
 }
 
-importer.version = '2.0.11';
+importer.version = '3.0.2';
 importer.config = function(settings){
 	const valid = settings.hasOwnProperty('host') && typeof settings.host === "string" &&
 		settings.hasOwnProperty('user') && typeof settings.user === "string" &&
@@ -62,9 +75,7 @@ importer.config = function(settings){
 	/* istanbul ignore next */
 	if(!valid) return settings.onerror(new Error("Invalid host, user, password, or database parameters"));
 
-	var conn = mysql.createConnection(settings);
-
-	return new importer(conn, err_handler);
+	return new importer(settings, err_handler);
 };
 
 module.exports = importer;
