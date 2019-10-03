@@ -56,6 +56,7 @@ async function createTestDB(){
  */
 async function destroyTestDB(){
 	await query("DROP DATABASE `testdb`;");
+	con.end();
 }
 
 module.exports = {

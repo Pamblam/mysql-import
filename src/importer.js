@@ -1,7 +1,12 @@
 class importer{
 	constructor(conn, err_handler){
 		this.conn = conn;
-		this.err_handler = err_handler;
+		this.err_handler = ()=>{
+			err_handler();
+			try{ 
+				this.conn.end(); 
+			}catch(e){}
+		}
 	}
 	import(filename){
 		return new Promise(done=>{
@@ -20,6 +25,7 @@ class importer{
 				}
 			}).then(()=>{
 				this.conn.end();
+				done();
 			});
 		});
 	};

@@ -1,5 +1,5 @@
 /**
- * mysql-import - v2.0.6
+ * mysql-import - v2.0.11
  * Import .sql into a MySQL database with Node.
  * @author Rob Parham
  * @website https://github.com/pamblam/mysql-import#readme
@@ -14,7 +14,12 @@ const fs = require('fs');
 class importer{
 	constructor(conn, err_handler){
 		this.conn = conn;
-		this.err_handler = err_handler;
+		this.err_handler = ()=>{
+			err_handler();
+			try{ 
+				this.conn.end(); 
+			}catch(e){}
+		}
 	}
 	import(filename){
 		return new Promise(done=>{
@@ -33,13 +38,14 @@ class importer{
 				}
 			}).then(()=>{
 				this.conn.end();
+				done();
 			});
 		});
 	};
 	
 }
 
-importer.version = '2.0.6';
+importer.version = '2.0.11';
 importer.config = function(settings){
 	const valid = settings.hasOwnProperty('host') && typeof settings.host === "string" &&
 		settings.hasOwnProperty('user') && typeof settings.user === "string" &&
