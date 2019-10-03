@@ -1,7 +1,7 @@
 
 DELIMITER &&
 
-CREATE TABLE IF NOT EXISTS `IMPORTTEST` (
+CREATE TABLE IF NOT EXISTS `importtest` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `doc` varchar(10000) NOT NULL,
   `classid` int(11) DEFAULT NULL,
@@ -991,7 +991,7 @@ INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (978,'I am trying to crea
 
 
 
-CREATE TABLE IF NOT EXISTS `EMPTYTABLE` (
+CREATE TABLE IF NOT EXISTS `emptytable` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1;

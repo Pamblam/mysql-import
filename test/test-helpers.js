@@ -46,7 +46,7 @@ function mysqlConnect(config){
  * @returns {undefined}
  */
 async function createTestDB(){
-	await query("create database if not exists testdb");
+	await query("CREATE DATABASE IF NOT EXISTS `testdb`;");
 	await query("use testdb");
 }
 
@@ -55,7 +55,7 @@ async function createTestDB(){
  * @returns {undefined}
  */
 async function destroyTestDB(){
-	await query("drop database testdb");
+	await query("DROP DATABASE `testdb`;");
 }
 
 module.exports = {

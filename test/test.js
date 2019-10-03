@@ -39,12 +39,12 @@ describe('Running All Tests', ()=>{
 	});
 
 	it('978 Rows Imported Into Test DB', async ()=>{
-		var rows = await query("SELECT * FROM `IMPORTTEST`;");
+		var rows = await query("SELECT * FROM `importtest`;");
 		expect(rows.length).to.equal(978);
 	});
 	
 	it('5 Rows With Semicolons Imported Into Test DB', async ()=>{
-		var rows = await query('SELECT * FROM `IMPORTTEST` WHERE `DOC` LIKE "%;%";');
+		var rows = await query('SELECT * FROM `importtest` WHERE `doc` LIKE "%;%";');
 		expect(rows.length).to.equal(5);
 	});
 });
