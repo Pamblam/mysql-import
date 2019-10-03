@@ -89,7 +89,7 @@ class queryParser{
 		if (demiliterFound) {
 			// trim the delimiter off the end
 			this.buffer.splice(-this.delimiter.length, this.delimiter.length);
-			this.queries.push(this.buffer.join(''));
+			this.queries.push(this.buffer.join('').trim());
 			this.buffer = [];
 		}
 	}

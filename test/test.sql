@@ -991,8 +991,14 @@ INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (978,'I am trying to crea
 
 
 
+CREATE TABLE IF NOT EXISTS `emptytable` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1;
 
+DELIMITER ;;
 
-
-
-
+CREATE TABLE IF NOT EXISTS `anotheremptytable` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1;;
