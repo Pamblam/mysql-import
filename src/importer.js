@@ -20,9 +20,30 @@ class importer{
 		this.conn = null;
 	}
 	
-	import(filename){
+	getSQLFilePaths(paths){
+		if(!Array.isArray(paths)) paths = [paths];
+		var full_paths = [];
+		for(var i=paths.length; i--;){
+			let exists = fs.existsSync(paths[i]);
+			if(!exists) continue;
+			let stat = fs.lstatSync(paths[i]);
+			let isFile = stat.isFile();
+			let isDir = stat.isDirectory();
+			if(!isFile && !isDir) continue;
+			if(isFile){
+				if(paths[i].toLowerCase().substring(paths[i].length-4) === '.sql'){
+					full_paths.push(path.resolve(paths[i]));
+				}
+			}else{
+				var more_paths = fs.readdirSync(paths[i]).map(p=>path.join(paths[i], p));
+				full_paths.push(...this.getSQLFilePaths(more_paths));
+			}
+		}
+		return full_paths;
+	}
+	
+	importSingleFile(filename){
 		return new Promise(done=>{
-			this.connect();
 			var queriesString = fs.readFileSync(filename, 'utf8');
 			var queries = new queryParser(queriesString).queries;
 			slowLoop(queries, (q,i,d)=>{
@@ -36,6 +57,18 @@ class importer{
 					/* istanbul ignore next */
 					this.err_handler(e); 
 				}
+			}).then(()=>{
+				done();
+			});
+		});
+	}
+	
+	import(input){
+		return new Promise(done=>{
+			this.connect();
+			var files = this.getSQLFilePaths(input);
+			slowLoop(files, (f,i,d)=>{
+				this.importSingleFile(f).then(d);
 			}).then(()=>{
 				this.disconnect();
 				done();
