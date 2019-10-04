@@ -69,8 +69,12 @@ const yourdb_importer = mysql_import.config({
 	database: 'yourdb',
 	onerror: err=>console.log(err.message)
 });
-await yourdb_importer.import('yourdb.sql');
-await yourdb_importer.import('yourdb.sql');
+
+// You can use an array to import more than one file at once
+await yourdb_importer.import(['yourdb.sql', 'yourdb2.sql']);
+
+// Or you can give the path to a directory and import every sql file in that path
+await yourdb_importer.import('/path/to/my/sql');
 ```
 
 ## Contributing
