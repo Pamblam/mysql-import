@@ -7,7 +7,7 @@
 	<img src='https://i.imgur.com/AOfuTLA.png'>
 </p>
 
-*Version 3.0.2* - [Github](https://github.com/Pamblam/mysql-import/) - [NPM](https://www.npmjs.com/package/mysql-import)
+*Version 3.0.5* - [Github](https://github.com/Pamblam/mysql-import/) - [NPM](https://www.npmjs.com/package/mysql-import)
 
 [![Build Status](https://api.travis-ci.org/Pamblam/mysql-import.svg?branch=master)](https://travis-ci.org/Pamblam/mysql-import/) [![Coverage Status](https://coveralls.io/repos/github/Pamblam/mysql-import/badge.svg?branch=master)](https://coveralls.io/github/Pamblam/mysql-import?branch=master)
 
@@ -69,8 +69,12 @@ const yourdb_importer = mysql_import.config({
 	database: 'yourdb',
 	onerror: err=>console.log(err.message)
 });
-await yourdb_importer.import('yourdb.sql');
-await yourdb_importer.import('yourdb.sql');
+
+// You can use an array to import more than one file at once
+await yourdb_importer.import(['yourdb.sql', 'yourdb2.sql']);
+
+// Or you can give the path to a directory and import every sql file in that path
+await yourdb_importer.import('/path/to/my/sql');
 ```
 
 ## Contributing

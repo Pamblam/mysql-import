@@ -3,7 +3,7 @@
 // RESET THEM TO '' BEFORE COMMITING CHANGES!
 const mysql_host = '';
 const mysql_user = '';
-const mysql_pass = '';
+const mysql_pass = 'ourtown1972';
 
 const expect = require('chai').expect;
 const {errorHandler,query,mysqlConnect,createTestDB,destroyTestDB} = require('./test-helpers.js');
@@ -25,7 +25,7 @@ describe('Running All Tests', ()=>{
 	
 	before(async ()=>{
 		await createTestDB();
-		await importer.import(__dirname+'/test.sql');
+		await importer.import(__dirname+'/sample_dump_files/test.sql');
 	});
 	
 	after(async ()=>{
@@ -49,7 +49,7 @@ describe('Running All Tests', ()=>{
 	});
 	
 	it('Reuse Importer', async ()=>{
-		await importer.import(__dirname+'/test2.sql');
+		await importer.import(__dirname+'/sample_dump_files/test2.sql');
 		var tables = await query("SHOW TABLES;");
 		expect(tables.length).to.equal(3);
 	});
@@ -57,5 +57,14 @@ describe('Running All Tests', ()=>{
 	it('5 Rows Inserted in 2nd Table', async ()=>{
 		var rows = await query("SELECT * FROM `test_table_2`;");
 		expect(rows.length).to.equal(5);
+	});
+	
+	it('Import Array, Directory', async ()=>{
+		await importer.import([
+			__dirname+'/sample_dump_files/test3.sql', 
+			__dirname+'/sample_dump_files/more_sample_files/'
+		]);
+		var tables = await query("SHOW TABLES;");
+		expect(tables.length).to.equal(6);
 	});
 });
