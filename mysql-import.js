@@ -1,5 +1,5 @@
 /**
- * mysql-import - v3.0.5
+ * mysql-import - v3.0.6
  * Import .sql into a MySQL database with Node.
  * @author Rob Parham
  * @website https://github.com/pamblam/mysql-import#readme
@@ -92,7 +92,7 @@ class importer{
 	
 }
 
-importer.version = '3.0.5';
+importer.version = '3.0.6';
 importer.config = function(settings){
 	const valid = settings.hasOwnProperty('host') && typeof settings.host === "string" &&
 		settings.hasOwnProperty('user') && typeof settings.user === "string" &&
@@ -164,7 +164,10 @@ class queryParser{
 		
 		// Are we currently seeking new delimiter
 		this.seekingDelimiter = false;
-		
+
+		// Does the sql set change delimiter?
+		this.hasDelimiter = queriesString.toLowerCase().includes('delimiter ');
+
 		// Iterate over each char in the string
 		for (let i = 0; i < this.queriesString.length; i++) {
 			let char = this.queriesString[i];
@@ -176,7 +179,11 @@ class queryParser{
 	parseChar(char){
 		this.checkEscapeChar();
 		this.buffer.push(char);
-		this.checkNewDelimiter(char);
+
+		if (this.hasDelimiter) {
+			this.checkNewDelimiter(char);
+		}
+
 		this.checkQuote(char);
 		this.checkEndOfQuery();
 	}
