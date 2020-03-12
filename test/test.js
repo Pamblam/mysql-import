@@ -9,8 +9,8 @@ const expect = require('chai').expect;
 const {errorHandler,query,mysqlConnect,createTestDB,destroyTestDB,closeConnection} = require('./test-helpers.js');
 
 var config = {
-	host: mysql_host || '127.0.0.1', 
-	user: mysql_user || 'root', 
+	host: mysql_host || '', 
+	user: mysql_user || '', 
 	password: mysql_pass || '',
 	database: 'mysql-import-test-db-1'
 };
