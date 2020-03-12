@@ -1,35 +1,41 @@
 
 // SET THESE FOR LOCAL TESTING ONLY!
 // RESET THEM TO '' BEFORE COMMITING CHANGES!
-const mysql_host = '';
-const mysql_user = '';
-const mysql_pass = '';
+const mysql_host = 'localhost';
+const mysql_user = 'root';
+const mysql_pass = 'ourtown1972';
 
 const expect = require('chai').expect;
-const {errorHandler,query,mysqlConnect,createTestDB,destroyTestDB} = require('./test-helpers.js');
+const {errorHandler,query,mysqlConnect,createTestDB,destroyTestDB,closeConnection} = require('./test-helpers.js');
 
 var config = {
 	host: mysql_host || '127.0.0.1', 
 	user: mysql_user || 'root', 
-	password: mysql_pass || '', 
-	database: 'testdb',
-	onerror: errorHandler
+	password: mysql_pass || '',
+	database: 'mysql-import-test-db-1'
 };
 
 mysqlConnect(config);
 
-const importer = require('../mysql-import.js').config(config);
+const MySQLImport = require('../mysql-import.js');
+const importer = new MySQLImport(config);
+
 const start_time = new Date();
 
 describe('Running All Tests', ()=>{
 	
 	before(async ()=>{
-		await createTestDB();
+		await createTestDB('mysql-import-test-db-1');
+		await createTestDB('mysql-import-test-db-2');
+		query("USE `mysql-import-test-db-1`");
 		await importer.import(__dirname+'/sample_dump_files/test.sql');
+		importer.setEncoding('utf8');
 	});
 	
 	after(async ()=>{
-		await destroyTestDB();
+		await destroyTestDB('mysql-import-test-db-1');
+		await destroyTestDB('mysql-import-test-db-2');
+		closeConnection();
 		console.log(`All tests completed in ${(new Date() - start_time)/1000} seconds.`);
 	});
 	
@@ -60,11 +66,20 @@ describe('Running All Tests', ()=>{
 	});
 	
 	it('Import Array, Directory', async ()=>{
-		await importer.import([
+		await importer.import(
 			__dirname+'/sample_dump_files/test3.sql', 
 			__dirname+'/sample_dump_files/more_sample_files/'
-		]);
+		);
 		var tables = await query("SHOW TABLES;");
 		expect(tables.length).to.equal(6);
 	});
+	
+	it('Change database', async ()=>{
+		query("USE `mysql-import-test-db-2`;");
+		importer.use('mysql-import-test-db-2');
+		await importer.import(__dirname+'/sample_dump_files/');
+		var tables = await query("SHOW TABLES;");
+		expect(tables.length).to.equal(6);
+	});
+	
 });

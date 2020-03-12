@@ -45,18 +45,20 @@ function mysqlConnect(config){
  * Create a database to test with
  * @returns {undefined}
  */
-async function createTestDB(){
-	await query("DROP DATABASE IF EXISTS `testdb`;");
-	await query("CREATE DATABASE `testdb`;");
-	await query("USE `testdb`;");
+async function createTestDB(db){
+	await query("DROP DATABASE IF EXISTS `"+db+"`;");
+	await query("CREATE DATABASE `"+db+"`;");
 }
 
 /**
  * Destroy the testing DB
  * @returns {undefined}
  */
-async function destroyTestDB(){
-	await query("DROP DATABASE `testdb`;");
+async function destroyTestDB(db){
+	await query("DROP DATABASE `"+db+"`;");
+}
+
+function closeConnection(){
 	con.end();
 }
 
@@ -65,5 +67,6 @@ module.exports = {
 	query, 
 	mysqlConnect,
 	createTestDB, 
-	destroyTestDB
+	destroyTestDB,
+	closeConnection
 };
