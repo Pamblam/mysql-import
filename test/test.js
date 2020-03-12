@@ -1,16 +1,16 @@
 
 // SET THESE FOR LOCAL TESTING ONLY!
 // RESET THEM TO '' BEFORE COMMITING CHANGES!
-const mysql_host = 'localhost';
-const mysql_user = 'root';
-const mysql_pass = 'ourtown1972';
+const mysql_host = '';
+const mysql_user = '';
+const mysql_pass = '';
 
 const expect = require('chai').expect;
 const {errorHandler,query,mysqlConnect,createTestDB,destroyTestDB,closeConnection} = require('./test-helpers.js');
 
 var config = {
-	host: mysql_host || '', 
-	user: mysql_user || '', 
+	host: mysql_host || '127.0.0.1', 
+	user: mysql_user || 'root', 
 	password: mysql_pass || '',
 	database: 'mysql-import-test-db-1'
 };
