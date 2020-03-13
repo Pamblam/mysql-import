@@ -17,9 +17,9 @@ Import MySQL files with Node!
    - [`constructor`](#new-importerhost-user-password-database)
    - [`importer.getImported()`](#importerprototypegetimported)
    - [`importer.setEncoding(encoding)`](#importerprototypesetencodingencoding)
-   - [`importer.use(database)`](#importerusedatabase)
-   - [`importer.import(...input)`](#importerimportinput)
-   - [`importer.disconnect(graceful=true)`](#importerdisconnectgracefultrue)
+   - [`importer.use(database)`](#importerprototypeusedatabase)
+   - [`importer.import(...input)`](#importerprototypeimportinput)
+   - [`importer.disconnect(graceful=true)`](#importerprototypedisconnectgracefultrue)
  - [Contributing](#contributing)
 
 ## Install
