@@ -9,6 +9,19 @@
 
 Import MySQL files with Node!
 
+## Table of Contents
+
+ - [Install](#install)
+ - [TLDR (Example)](#tldr)
+ - [Methods](#methods)
+   - [`constructor`](#new-importerhost-user-password-database)
+   - [`importer.getImported()`](#importerprototypegetimported)
+   - [`importer.setEncoding(encoding)`](#importerprototypesetencodingencoding)
+   - [`importer.use(database)`](#importerusedatabase)
+   - [`importer.import(...input)`](#importerimportinput)
+   - [`importer.disconnect(graceful=true)`](#importerdisconnectgracefultrue)
+ - [Contributing](#contributing)
+
 ## Install
 via  [NPM](https://www.npmjs.com/package/mysql-import):
 ```
@@ -38,7 +51,7 @@ importer.import('path/to/dump.sql').then(()=>{
   console.error(err);
 });
 ```
-## Usage
+## Methods
 
 #### new Importer({host, user, password[, database]})
 
@@ -52,15 +65,11 @@ Get an array of files imported.
 
 Set the encoding to use when reading import files. Supported arguments are: `utf8`, `ucs2`, `utf16le`, `latin1`, `ascii`, `base64`, or `hex`.
 
-#### Importer.prototype.setEncoding(encoding)
-
-Set the encoding to use when reading import files. Supported arguments are: `utf8`, `ucs2`, `utf16le`, `latin1`, `ascii`, `base64`, or `hex`.
-
-#### Importer.use(database)
+#### Importer.prototype.use(database)
 
 Set or change the database to import to.
 
-#### Importer.import(...input)
+#### Importer.prototype.import(...input)
 
 Import an `.sql` file or files into the database. This method will take...
 
@@ -78,7 +87,7 @@ Import an `.sql` file or files into the database. This method will take...
    ```
  - Any combination of any of the above.
 
-#### Importer.disconnect(graceful=true)
+#### Importer.prototype.disconnect(graceful=true)
 
 Disconnects the connection. If `graceful` is switched to false it will force close any connections. This is called automatically after files are imported so typically *this method should never be required*.
 
