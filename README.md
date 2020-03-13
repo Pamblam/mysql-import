@@ -1,81 +1,95 @@
 
-
-
-
-
 <p align="center">
 	<img src='https://i.imgur.com/AOfuTLA.png'>
 </p>
 
-*Version 3.0.6* - [Github](https://github.com/Pamblam/mysql-import/) - [NPM](https://www.npmjs.com/package/mysql-import)
+*Version 4.0.24* ([NPM](https://www.npmjs.com/package/mysql-import)) ([Github](https://github.com/Pamblam/mysql-import/))
 
 [![Build Status](https://api.travis-ci.org/Pamblam/mysql-import.svg?branch=master)](https://travis-ci.org/Pamblam/mysql-import/) [![Coverage Status](https://coveralls.io/repos/github/Pamblam/mysql-import/badge.svg?branch=master)](https://coveralls.io/github/Pamblam/mysql-import?branch=master)
 
 Import MySQL files with Node!
 
+## Table of Contents
+
+ - [Install](#install)
+ - [TLDR (Example)](#tldr)
+ - [Methods](#methods)
+   - [`constructor`](#new-importerhost-user-password-database)
+   - [`importer.getImported()`](#importerprototypegetimported)
+   - [`importer.setEncoding(encoding)`](#importerprototypesetencodingencoding)
+   - [`importer.use(database)`](#importerprototypeusedatabase)
+   - [`importer.import(...input)`](#importerprototypeimportinput)
+   - [`importer.disconnect(graceful=true)`](#importerprototypedisconnectgracefultrue)
+ - [Contributing](#contributing)
+
 ## Install
+via  [NPM](https://www.npmjs.com/package/mysql-import):
 ```
 $ npm install --save-dev mysql-import
 ```
-
-## Usage
-
-Include the package.
-
-    const mysql_import = require('mysql-import');
-
-`mysql-import` exposes one method and a `version` property. `mysql_import.version` is a string showing the current version of the package.
-
-#### `mysql-import.config(Object settings)`
-
-Prepare the package to communicate with your database and handle any errors. This method **must** be called before importing anything.
-
-The `settings` object has 4 mandatory parameters and 1 optional parameter.
-
- - `host` - (**mandatory**) The MySQL host to connect to.
- - `user` - (**mandatory**) The MySQL user to connect with.
- - `password` - (**mandatory**) The password for the user.
- - `database` - (**mandatory**) The database to connect to.
- - `onerror` - (**optional**) Function to handle errors.  The function will receive the Error. If not provided the error will be thrown.
-
-The `config` method returns a new `importer` instance.
-
-#### `importer.import(String filename)`
-
-Import an `.sql` file to the database.
-
-The `import` method returns a Promise which is resolved when the import has completed. This promise is never rejected, if there is an error, the `onerror` function passed to the `config` method is called with the error object passed into it.
-
-#### Example
-
-```js
-const mysql_import = require('mysql-import');
-
-const mydb_importer = mysql_import.config({
-	host: 'localhost',
-	user: 'testuser',
-	password: 'testpwd',
-	database: 'mydb',
-	onerror: err=>console.log(err.message)
-});
-await mydb_importer.import('mydb.sql');
-await mydb_importer.import('mydb2.sql');
-
-// Each database requires it's own importer.
-const yourdb_importer = mysql_import.config({
-	host: 'localhost',
-	user: 'testuser',
-	password: 'testpwd',
-	database: 'yourdb',
-	onerror: err=>console.log(err.message)
-});
-
-// You can use an array to import more than one file at once
-await yourdb_importer.import(['yourdb.sql', 'yourdb2.sql']);
-
-// Or you can give the path to a directory and import every sql file in that path
-await yourdb_importer.import('/path/to/my/sql');
+Via [Github](https://github.com/Pamblam/mysql-import/):
 ```
+git clone https://github.com/Pamblam/mysql-import.git
+```
+
+## TLDR:
+
+```
+const host = 'localhost';
+const user = 'root';
+const password = 'password';
+const database = 'mydb';
+
+const mysql_import = require('mysql-import');
+const Importer = require('../mysql-import.js');
+const importer = new Importer({host, user, password, database});
+
+importer.import('path/to/dump.sql').then(()=>{
+  var files_imported = importer.getImported();
+  console.log('${files_imported.length} SQL file(s) imported.');
+}).catch(err=>{
+  console.error(err);
+});
+```
+## Methods
+
+#### new Importer({host, user, password[, database]})
+
+The constructor requires an object with a `host`, `user`, and `password` parameter. Passing in a database parameter is optional.
+
+#### Importer.prototype.getImported()
+
+Get an array of files imported.
+
+#### Importer.prototype.setEncoding(encoding)
+
+Set the encoding to use when reading import files. Supported arguments are: `utf8`, `ucs2`, `utf16le`, `latin1`, `ascii`, `base64`, or `hex`.
+
+#### Importer.prototype.use(database)
+
+Set or change the database to import to.
+
+#### Importer.prototype.import(...input)
+
+Import an `.sql` file or files into the database. This method will take...
+
+ - Any number of paths to individual `.sql` files.
+   ```
+   importer.import('path/to/dump1.sql', 'path/to/dum2.sql')
+   ```
+ - Any number of paths that contain any number of `.sql` files.
+   ```
+   importer.import('path/to/mysqldumps/')
+   ```
+ - Any number of arrays containing either of the above.
+   ```
+   importer.import(['path/to/dump.sql', 'path/to/dumps/'])
+   ```
+ - Any combination of any of the above.
+
+#### Importer.prototype.disconnect(graceful=true)
+
+Disconnects the connection. If `graceful` is switched to false it will force close any connections. This is called automatically after files are imported so typically *this method should never be required*.
 
 ## Contributing
 

@@ -1,101 +1,296 @@
-class importer{
-	constructor(settings, err_handler){
-		this.settings = settings;
-		this.conn = null;
-		this.err_handler = (e)=>{
-			err_handler(e);
-			this.disconnect();
+
+/**
+ * mysql-import - Importer class
+ * @version {{ VERSION }}
+ * https://github.com/Pamblam/mysql-import
+ */
+
+class Importer{
+	
+	/**
+	 * new Importer(settings)
+	 * @param {host, user, password[, database]} settings - login credentials
+	 */
+	constructor(settings){
+		this._connection_settings = settings;
+		this._conn = null;
+		this._encoding = 'utf8';
+		this._imported = [];
+	}
+	
+	/**
+	 * Get an array of the imported files
+	 * @returns {Array}
+	 */
+	getImported(){
+		return this._imported.slice(0);
+	}
+	
+	/**
+	 * Set the encoding to be used for reading the dump files.
+	 * @param string - encoding type to be used.
+	 * @throws {Error} - if unsupported encoding type. 
+	 * @returns {undefined}
+	 */
+	setEncoding(encoding){
+		var supported_encodings = [
+			'utf8',
+			'ucs2',
+			'utf16le',
+			'latin1',
+			'ascii',
+			'base64',
+			'hex'
+		];
+		if(!supported_encodings.includes(encoding)){
+			throw new Error("Unsupported encoding: "+encoding);
 		}
+		this._encoding = encoding;
 	}
 	
-	connect(){
-		this.conn = this.conn || mysql.createConnection(this.settings);
-	}
-	
-	disconnect(){
-		if(!this.conn) return;
-		try{ 
-			this.conn.end(); 
-		}catch(e){}
-		this.conn = null;
-	}
-	
-	getSQLFilePaths(paths){
-		if(!Array.isArray(paths)) paths = [paths];
-		var full_paths = [];
-		for(var i=paths.length; i--;){
-			let exists = fs.existsSync(paths[i]);
-			if(!exists) continue;
-			let stat = fs.lstatSync(paths[i]);
-			let isFile = stat.isFile();
-			let isDir = stat.isDirectory();
-			if(!isFile && !isDir) continue;
-			if(isFile){
-				if(paths[i].toLowerCase().substring(paths[i].length-4) === '.sql'){
-					full_paths.push(path.resolve(paths[i]));
-				}
-			}else{
-				var more_paths = fs.readdirSync(paths[i]).map(p=>path.join(paths[i], p));
-				full_paths.push(...this.getSQLFilePaths(more_paths));
+	/**
+	 * Set or change the database to be used
+	 * @param string - database name
+	 * @returns {Promise}
+	 */
+	use(database){
+		return new Promise((resolve, reject)=>{
+			if(!this._conn){
+				this._connection_settings.database = database;
+				return;
 			}
-		}
-		return full_paths;
-	}
-	
-	importSingleFile(filename){
-		return new Promise(done=>{
-			var queriesString = fs.readFileSync(filename, 'utf8');
-			var queries = new queryParser(queriesString).queries;
-			slowLoop(queries, (q,i,d)=>{
-				try{
-					this.conn.query(q, err=>{
-						/* istanbul ignore next */
-						if (err) this.err_handler(err); 
-						else d();
-					});
-				}catch(e){
-					/* istanbul ignore next */
-					this.err_handler(e); 
+			this._conn.changeUser({database}, err=>{
+				if (err){
+					reject(err);	
+				}else{
+					resolve();
 				}
-			}).then(()=>{
-				done();
 			});
 		});
 	}
 	
-	import(input){
-		return new Promise(done=>{
-			this.connect();
-			var files = this.getSQLFilePaths(input);
-			slowLoop(files, (f,i,d)=>{
-				this.importSingleFile(f).then(d);
-			}).then(()=>{
-				this.disconnect();
-				done();
-			});
+	/**
+	 * Import (an) .sql file(s).
+	 * @param string|array input - files or paths to scan for .sql files
+	 * @returns {Promise}
+	 */
+	import(...input){
+		return new Promise(async (resolve, reject)=>{
+			try{
+				await this._connect();
+				var files = await this._getSQLFilePaths(...input);
+				var error = null;
+				await slowLoop(files, (file, index, next)=>{
+					if(error){
+						next();
+						return;
+					}
+					this._importSingleFile(file).then(()=>{
+						next();
+					}).catch(err=>{
+						error = err;
+						next();
+					});
+				});
+				if(error) throw error;
+				await this.disconnect();
+				resolve();
+			}catch(err){
+				reject(err);
+			}
 		});
 	};
 	
-}
-
-importer.version = '{{ VERSION }}';
-importer.config = function(settings){
-	const valid = settings.hasOwnProperty('host') && typeof settings.host === "string" &&
-		settings.hasOwnProperty('user') && typeof settings.user === "string" &&
-		settings.hasOwnProperty('password') && typeof settings.password === "string" &&
-		settings.hasOwnProperty('database') && typeof settings.database === "string";
-
-	/* istanbul ignore next */
-	if(!settings.hasOwnProperty("onerror") || typeof settings.onerror !== "function"){
-		settings.onerror = err=>{ throw err };
+	/**
+	 * Disconnect mysql. This is done automatically, so shouldn't need to be manually called.
+	 * @param bool graceful - force close?
+	 * @returns {Promise}
+	 */
+	disconnect(graceful=true){
+		return new Promise((resolve, reject)=>{
+			if(!this._conn){
+				resolve();
+				return;
+			}
+			if(graceful){
+				this._conn.end(err=>{
+					if(err){
+						reject(err);
+						return;
+					}
+					this._conn = null;
+					resolve();
+				});
+			}else{
+				this._conn.destroy();
+				resolve();
+			}				
+		});
+	}
+	
+	////////////////////////////////////////////////////////////////////////////
+	// Private methods /////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////
+	
+	/**
+	 * Import a single .sql file into the database
+	 * @param {type} filepath
+	 * @returns {Promise}
+	 */
+	_importSingleFile(filepath){
+		return new Promise((resolve, reject)=>{
+			fs.readFile(filepath, this._encoding, (err, queriesString) => {
+				if(err){
+					reject(err);
+					return;
+				}
+				var queries = new queryParser(queriesString).queries;
+				var error = null;
+				slowLoop(queries, (query, index, next)=>{
+					if(error){
+						next();
+						return;
+					}
+					this._conn.query(query, err=>{
+						if (err) error = err;
+						next();
+					});
+				}).then(()=>{
+					if(error){
+						reject(error);
+					}else{
+						this._imported.push(filepath);
+						resolve();
+					}
+				});
+				
+			});
+		});
+	}
+	
+	/**
+	 * Connect to the mysql server
+	 * @returns {Promise}
+	 */
+	_connect(){
+		return new Promise((resolve, reject)=>{
+			if(this._conn){
+				resolve(this._conn);
+				return;
+			}
+			var connection = mysql.createConnection(this._connection_settings);
+			connection.connect(err=>{
+				if (err){
+					reject(err);	
+				}else{
+					this._conn = connection;
+					resolve();
+				}
+			});
+		});
+	}
+	
+	/**
+	 * Check if a file exists
+	 * @param string filepath
+	 * @returns {Promise}
+	 */
+	_fileExists(filepath){
+		return new Promise((resolve, reject)=>{
+			fs.access(filepath, fs.F_OK, err=>{
+				if(err){
+					reject(err);
+				}else{
+					resolve();
+				}
+			});
+		});
 	}
 
-	var err_handler = settings.onerror;
+	/**
+	 * Get filetype information
+	 * @param string filepath
+	 * @returns {Promise}
+	 */
+	_statFile(filepath){
+		return new Promise((resolve, reject)=>{
+			fs.lstat(filepath, (err, stat)=>{
+				if(err){
+					reject(err);
+				}else{
+					resolve(stat);
+				}
+			});
+		});
+	}
+	
+	/**
+	 * Read contents of a directory
+	 * @param string filepath
+	 * @returns {Promise}
+	 */
+	_readDir(filepath){
+		return new Promise((resolve, reject)=>{
+			fs.readdir(filepath, (err, files)=>{
+				if(err){
+					reject(err);
+				}else{
+					resolve(files);
+				}
+			});
+		});
+	}
 
-	/* istanbul ignore next */
-	if(!valid) return settings.onerror(new Error("Invalid host, user, password, or database parameters"));
+	/**
+	 * Parses the input argument(s) for Importer.import into an array sql files.
+	 * @param strings|array paths
+	 * @returns {Promise}
+	 */
+	_getSQLFilePaths(...paths){
+		return new Promise(async (resolve, reject)=>{
+			var full_paths = [];
+			var error = null;
+			paths = [].concat.apply([], paths); // flatten array of paths
+			await slowLoop(paths, async (filepath, index, next)=>{
+				if(error){
+					next();
+					return;
+				}
+				try{
+					await this._fileExists(filepath);
+					var stat = await this._statFile(filepath);
+					if(stat.isFile()){
+						if(filepath.toLowerCase().substring(filepath.length-4) === '.sql'){
+							full_paths.push(path.resolve(filepath));
+						}
+						next();
+					}else if(stat.isDirectory()){
+						var more_paths = await this._readDir(filepath);
+						more_paths = more_paths.map(p=>path.join(filepath, p));
+						var sql_files = await this._getSQLFilePaths(...more_paths);
+						full_paths.push(...sql_files);
+						next();
+					}else{
+						next();
+					}
+				}catch(err){
+					error = err;
+					next();
+				}
+			});
+			if(error){
+				reject(error);
+			}else{
+				resolve(full_paths);
+			}
+		});
+	}
+	
+}
 
-	return new importer(settings, err_handler);
-};
+/**
+ * Build version number
+ */
+Importer.version = '{{ VERSION }}';
 
-module.exports = importer;
+module.exports = Importer;
