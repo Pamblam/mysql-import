@@ -17,6 +17,7 @@ var config = {
 
 mysqlConnect(config);
 
+const fs = require('fs');
 const MySQLImport = require('../mysql-import.js');
 const importer = new MySQLImport(config);
 
@@ -80,6 +81,123 @@ describe('Running All Tests', ()=>{
 		await importer.import(__dirname+'/sample_dump_files/');
 		var tables = await query("SHOW TABLES;");
 		expect(tables.length).to.equal(6);
+	});
+	
+	it('Test unsupported encoding', ()=>{
+		var error;
+		try{
+			importer.setEncoding("#we&%");
+		}catch(e){
+			error = e;
+		}
+		expect(typeof error).to.equal("object");
+	});
+	
+	it('Test manually connecting', async ()=>{
+		var host = config.host;
+		var error = null;
+		try{
+			importer.connection_settings.host = "#$%^";
+			await importer._connect();
+		}catch(e){
+			error = e;
+			importer.connection_settings.host = host;
+		}
+		expect(typeof error).to.equal("object");
+	});
+	
+	it('Test live DB change', async ()=>{
+		await importer._connect();
+		await importer._connect(); // a second time time, intentionally
+		await importer.use('mysql-import-test-db-1'); // should work with no problems
+		var error;
+		try{
+			await importer.use('mysql-import-test-#$%');
+		}catch(e){
+			error = e;
+		}
+		try{ await importer.disconnect(true); }catch(e){}
+		expect(typeof error).to.equal("object");
+	});
+	
+	it('Single file error handling', async ()=>{
+		var error;
+		try{
+			await importer.importSingleFile("@#$");
+		}catch(e){
+			error = e;
+		}
+		expect(typeof error).to.equal("object");
+	});
+	
+	it('Test fake sql file.', async ()=>{
+		var fake_sql_file = __dirname+"/sample_dump_files/more_sample_files/not_sql.txt";
+		var error;
+		try{
+			await importer.importSingleFile(fake_sql_file);
+		}catch(e){
+			error = e;
+		}
+		expect(typeof error).to.equal("object");
+	});
+	
+	it('Test importing broken file.', async ()=>{
+		var fake_sql_file = __dirname+"/broken_dump_files/dump.sql";
+		var fake_sql_file2 = __dirname+"/broken_dump_files/dump_1.sql";
+		var error;
+		try{
+			await importer.import(fake_sql_file, fake_sql_file2);
+		}catch(e){
+			error = e;
+		}
+		expect(typeof error).to.equal("object");
+	});
+	
+	it('Test diconnect function.', async ()=>{
+		importer.conn = false;
+		await importer.disconnect();
+		await importer._connect();
+		await importer.disconnect(false);
+	});
+	
+	it('Test fileExist method.', async ()=>{
+		var error;
+		try{
+			await importer._fileExists('!@#$');
+		}catch(e){
+			error = e;
+		}
+		expect(typeof error).to.equal("object");
+	});
+	
+	it('Test statFile method.', async ()=>{
+		var error;
+		try{
+			await importer._statFile('!@#$');
+		}catch(e){
+			error = e;
+		}
+		expect(typeof error).to.equal("object");
+	});
+	
+	it('Test readDir method.', async ()=>{
+		var error;
+		try{
+			await importer._readDir('!@#$');
+		}catch(e){
+			error = e;
+		}
+		expect(typeof error).to.equal("object");
+	});
+	
+	it('Testing path parser.', async ()=>{
+		var error;
+		try{
+			await importer._getSQLFilePaths('!@#$', '$%^#^', __dirname+"/broken_dump_files");
+		}catch(e){
+			error = e;
+		}
+		expect(typeof error).to.equal("object");
 	});
 	
 });

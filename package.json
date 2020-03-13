@@ -38,8 +38,8 @@
   },
   "scripts": {
     "build": "grunt",
-    "test": "nyc --reporter=html --reporter=text mocha --timeout 15000",
+    "test": "node_modules/.bin/nyc --reporter=html --reporter=text node_modules/.bin/mocha --timeout 15000",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
-  "version": "4.0.23"
+  "version": "4.0.24"
 }
