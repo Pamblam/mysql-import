@@ -65,11 +65,17 @@ Set or change the database to import to.
 Import an `.sql` file or files into the database. This method will take...
 
  - Any number of paths to individual `.sql` files.
-   ```importer.import('path/to/dump1.sql', 'path/to/dum2.sql')```
+   ```
+   importer.import('path/to/dump1.sql', 'path/to/dum2.sql')
+   ```
  - Any number of paths that contain any number of `.sql` files.
-   ```importer.import('path/to/mysqldumps/')```
+   ```
+   importer.import('path/to/mysqldumps/')
+   ```
  - Any number of arrays containing either of the above.
-   ```importer.import(['path/to/dump.sql', 'path/to/dumps/'])```
+   ```
+   importer.import(['path/to/dump.sql', 'path/to/dumps/'])
+   ```
  - Any combination of any of the above.
 
 #### Importer.disconnect(graceful=true)
