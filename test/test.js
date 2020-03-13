@@ -97,11 +97,11 @@ describe('Running All Tests', ()=>{
 		var host = config.host;
 		var error = null;
 		try{
-			importer.connection_settings.host = "#$%^";
+			importer._connection_settings.host = "#$%^";
 			await importer._connect();
 		}catch(e){
 			error = e;
-			importer.connection_settings.host = host;
+			importer._connection_settings.host = host;
 		}
 		expect(typeof error).to.equal("object");
 	});
@@ -154,10 +154,12 @@ describe('Running All Tests', ()=>{
 	});
 	
 	it('Test diconnect function.', async ()=>{
-		importer.conn = false;
-		await importer.disconnect();
-		await importer._connect();
-		await importer.disconnect(false);
+		try{
+			importer._conn = false;
+			await importer.disconnect();
+			await importer._connect();
+			await importer.disconnect(false);
+		}catch(e){}
 	});
 	
 	it('Test fileExist method.', async ()=>{
