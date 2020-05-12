@@ -34,7 +34,7 @@ git clone https://github.com/Pamblam/mysql-import.git
 
 ## TLDR:
 
-```
+```js
 const host = 'localhost';
 const user = 'root';
 const password = 'password';
