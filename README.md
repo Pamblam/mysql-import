@@ -40,8 +40,7 @@ const user = 'root';
 const password = 'password';
 const database = 'mydb';
 
-const mysql_import = require('mysql-import');
-const Importer = require('../mysql-import.js');
+const Importer = require('mysql-import');
 const importer = new Importer({host, user, password, database});
 
 importer.import('path/to/dump.sql').then(()=>{
