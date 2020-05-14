@@ -1,5 +1,5 @@
 /**
- * mysql-import - v4.0.24
+ * mysql-import - v4.1.11
  * Import .sql into a MySQL database with Node.
  * @author Rob Parham
  * @website https://github.com/pamblam/mysql-import#readme
@@ -15,7 +15,7 @@ const path = require("path");
 
 /**
  * mysql-import - Importer class
- * @version 4.0.24
+ * @version 4.1.11
  * https://github.com/Pamblam/mysql-import
  */
 
@@ -152,6 +152,33 @@ class Importer{
 	 * @returns {Promise}
 	 */
 	_importSingleFile(filepath){
+		return new Promise((resolve, reject)=>{
+			var error = null;
+			var parser = new queryParser();
+			parser.onQuery(query=>{
+				this._conn.query(query, err=>{
+					if (err) error = err;
+				});
+			});
+			var readerStream = fs.createReadStream(filepath);
+			readerStream.setEncoding(this._encoding);
+			readerStream.on('data', chunk=>parser.onStream(chunk));
+			readerStream.on('end', ()=>{
+				parser.onQueueFinished(()=>{
+					this._imported.push(filepath);
+					resolve();
+				});
+			});
+			readerStream.on('error', err=>reject(err));
+		});
+	}
+	
+	/**
+	 * Import a single .sql file into the database
+	 * @param {type} filepath
+	 * @returns {Promise}
+	 */
+	_importSingleFile_nostream(filepath){
 		return new Promise((resolve, reject)=>{
 			fs.readFile(filepath, this._encoding, (err, queriesString) => {
 				if(err){
@@ -305,7 +332,7 @@ class Importer{
 /**
  * Build version number
  */
-Importer.version = '4.0.24';
+Importer.version = '4.1.11';
 
 module.exports = Importer;
 
@@ -337,15 +364,21 @@ class queryParser{
 	
 	constructor(queriesString){
 		
-		// Input string containing SQL queries
-		this.queriesString = queriesString.trim();
+		// query handler function
+		this.queryHandler = ()=>{};
+		
+		// completion handler
+		this.completeHandler = ()=>{};
+		
+		// chunks of data that need to be processed
+		this.pending_chunks = [];
+		
+		// is currently parsing?
+		this.parsing = false;
 		
 		// The quote type (' or ") if the parser 
 		// is currently inside of a quote, else false
 		this.quoteType = false;
-		
-		// An array of complete queries
-		this.queries = [];
 		
 		// An array of chars representing the substring
 		// the is currently being parsed
@@ -359,15 +392,45 @@ class queryParser{
 		
 		// Are we currently seeking new delimiter
 		this.seekingDelimiter = false;
-
-		// Does the sql set change delimiter?
-		this.hasDelimiter = queriesString.toLowerCase().includes('delimiter ');
-
-		// Iterate over each char in the string
-		for (let i = 0; i < this.queriesString.length; i++) {
-			let char = this.queriesString[i];
+	}
+	
+	// set a callback function to be called when the current queue is finished
+	// or immediately if there is no current queue
+	onQueueFinished(fn){
+		if(typeof fn !== 'function') return false;
+		this.completeHandler = fn;
+		if(!this.parsing) this.completeHandler();
+	}
+	
+	// handle a portion of the data file from a read stream
+	onStream(chunk){
+		this.pending_chunks.push(chunk);
+		this.handlePendingChunks();
+	}
+	
+	// Add a function to do something with each query.
+	// by running the callback and garbage collecting we can handle large files
+	onQuery(fn){
+		if(typeof fn !== 'function') return false;
+		this.queryHandler = fn;
+	}
+	
+	////////////////////////////////////////////////////////////////////////////
+	// "Private" methods" //////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////
+	
+	// recursively parse pending chunks of data
+	handlePendingChunks(){
+		if(this.parsing) return;
+		this.parsing = true;
+		var chunk = this.pending_chunks.shift();
+		for (let i = 0; i < chunk.length; i++) {
+			let char = chunk[i];
 			this.parseChar(char);
 		}
+		this.parsing = false;
+		if(this.pending_chunks.length) this.handlePendingChunks();
+		else this.completeHandler();
 	}
 	
 	// Parse the next char in the string
@@ -375,9 +438,7 @@ class queryParser{
 		this.checkEscapeChar();
 		this.buffer.push(char);
 
-		if (this.hasDelimiter) {
-			this.checkNewDelimiter(char);
-		}
+		this.checkNewDelimiter(char);
 
 		this.checkQuote(char);
 		this.checkEndOfQuery();
@@ -430,7 +491,7 @@ class queryParser{
 		if (demiliterFound) {
 			// trim the delimiter off the end
 			this.buffer.splice(-this.delimiter.length, this.delimiter.length);
-			this.queries.push(this.buffer.join('').trim());
+			this.queryHandler(this.buffer.join('').trim());
 			this.buffer = [];
 		}
 	}

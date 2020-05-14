@@ -139,6 +139,33 @@ class Importer{
 	 */
 	_importSingleFile(filepath){
 		return new Promise((resolve, reject)=>{
+			var error = null;
+			var parser = new queryParser();
+			parser.onQuery(query=>{
+				this._conn.query(query, err=>{
+					if (err) error = err;
+				});
+			});
+			var readerStream = fs.createReadStream(filepath);
+			readerStream.setEncoding(this._encoding);
+			readerStream.on('data', chunk=>parser.onStream(chunk));
+			readerStream.on('end', ()=>{
+				parser.onQueueFinished(()=>{
+					this._imported.push(filepath);
+					resolve();
+				});
+			});
+			readerStream.on('error', err=>reject(err));
+		});
+	}
+	
+	/**
+	 * Import a single .sql file into the database
+	 * @param {type} filepath
+	 * @returns {Promise}
+	 */
+	_importSingleFile_nostream(filepath){
+		return new Promise((resolve, reject)=>{
 			fs.readFile(filepath, this._encoding, (err, queriesString) => {
 				if(err){
 					reject(err);

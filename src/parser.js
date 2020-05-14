@@ -3,15 +3,21 @@ class queryParser{
 	
 	constructor(queriesString){
 		
-		// Input string containing SQL queries
-		this.queriesString = queriesString.trim();
+		// query handler function
+		this.queryHandler = ()=>{};
+		
+		// completion handler
+		this.completeHandler = ()=>{};
+		
+		// chunks of data that need to be processed
+		this.pending_chunks = [];
+		
+		// is currently parsing?
+		this.parsing = false;
 		
 		// The quote type (' or ") if the parser 
 		// is currently inside of a quote, else false
 		this.quoteType = false;
-		
-		// An array of complete queries
-		this.queries = [];
 		
 		// An array of chars representing the substring
 		// the is currently being parsed
@@ -25,15 +31,45 @@ class queryParser{
 		
 		// Are we currently seeking new delimiter
 		this.seekingDelimiter = false;
-
-		// Does the sql set change delimiter?
-		this.hasDelimiter = queriesString.toLowerCase().includes('delimiter ');
-
-		// Iterate over each char in the string
-		for (let i = 0; i < this.queriesString.length; i++) {
-			let char = this.queriesString[i];
+	}
+	
+	// set a callback function to be called when the current queue is finished
+	// or immediately if there is no current queue
+	onQueueFinished(fn){
+		if(typeof fn !== 'function') return false;
+		this.completeHandler = fn;
+		if(!this.parsing) this.completeHandler();
+	}
+	
+	// handle a portion of the data file from a read stream
+	onStream(chunk){
+		this.pending_chunks.push(chunk);
+		this.handlePendingChunks();
+	}
+	
+	// Add a function to do something with each query.
+	// by running the callback and garbage collecting we can handle large files
+	onQuery(fn){
+		if(typeof fn !== 'function') return false;
+		this.queryHandler = fn;
+	}
+	
+	////////////////////////////////////////////////////////////////////////////
+	// "Private" methods" //////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////
+	
+	// recursively parse pending chunks of data
+	handlePendingChunks(){
+		if(this.parsing) return;
+		this.parsing = true;
+		var chunk = this.pending_chunks.shift();
+		for (let i = 0; i < chunk.length; i++) {
+			let char = chunk[i];
 			this.parseChar(char);
 		}
+		this.parsing = false;
+		if(this.pending_chunks.length) this.handlePendingChunks();
+		else this.completeHandler();
 	}
 	
 	// Parse the next char in the string
@@ -41,9 +77,7 @@ class queryParser{
 		this.checkEscapeChar();
 		this.buffer.push(char);
 
-		if (this.hasDelimiter) {
-			this.checkNewDelimiter(char);
-		}
+		this.checkNewDelimiter(char);
 
 		this.checkQuote(char);
 		this.checkEndOfQuery();
@@ -96,7 +130,7 @@ class queryParser{
 		if (demiliterFound) {
 			// trim the delimiter off the end
 			this.buffer.splice(-this.delimiter.length, this.delimiter.length);
-			this.queries.push(this.buffer.join('').trim());
+			this.queryHandler(this.buffer.join('').trim());
 			this.buffer = [];
 		}
 	}
