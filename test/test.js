@@ -1,9 +1,9 @@
 
 // SET THESE FOR LOCAL TESTING ONLY!
 // RESET THEM TO '' BEFORE COMMITING CHANGES!
-const mysql_host = '';
-const mysql_user = '';
-const mysql_pass = '';
+const mysql_host = 'localhost';
+const mysql_user = 'root';
+const mysql_pass = 'ourtown1972';
 
 const expect = require('chai').expect;
 const {errorHandler,query,mysqlConnect,createTestDB,destroyTestDB,closeConnection} = require('./test-helpers.js');
@@ -19,13 +19,21 @@ mysqlConnect(config);
 
 const fs = require('fs');
 const MySQLImport = require('../mysql-import.js');
+const SQLDumpGenerator = require('./SQLDumpGenerator.js');
 const importer = new MySQLImport(config);
 
 const start_time = new Date();
+var big_dump_file;
 
 describe('Running All Tests', ()=>{
 	
-	before(async ()=>{
+	before(async function(){
+		this.timeout(0);
+
+		const generator = new SQLDumpGenerator(2.5 * 1e+9, 'large_dump.sql');
+		await generator.init();
+		big_dump_file = generator.target_file;
+		
 		await createTestDB('mysql-import-test-db-1');
 		await createTestDB('mysql-import-test-db-2');
 		query("USE `mysql-import-test-db-1`");
@@ -38,6 +46,13 @@ describe('Running All Tests', ()=>{
 		await destroyTestDB('mysql-import-test-db-2');
 		closeConnection();
 		console.log(`All tests completed in ${(new Date() - start_time)/1000} seconds.`);
+	});
+	
+	it('Import large dataset', async function(){
+		this.timeout(0);
+		await importer.import(big_dump_file);
+		var tables = await query("SHOW TABLES;");
+		expect(tables.length).to.equal(3);
 	});
 	
 	it('Import two tables', async ()=>{
