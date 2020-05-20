@@ -1,19 +1,15 @@
 
-class queryParser{
+class queryParser extends stream.Writable{
 	
-	constructor(queriesString){
+	constructor(options){
+		options = options || {};
+		super(options);
 		
-		// query handler function
-		this.queryHandler = ()=>{};
+		// the encoding of the file being read
+		this.encoding = options.encoding || 'utf8';
 		
-		// completion handler
-		this.completeHandler = ()=>{};
-		
-		// chunks of data that need to be processed
-		this.pending_chunks = [];
-		
-		// is currently parsing?
-		this.parsing = false;
+		// the encoding of the database connection
+		this.db_connection = options.db_connection;
 		
 		// The quote type (' or ") if the parser 
 		// is currently inside of a quote, else false
@@ -31,56 +27,47 @@ class queryParser{
 		
 		// Are we currently seeking new delimiter
 		this.seekingDelimiter = false;
-	}
-	
-	// set a callback function to be called when the current queue is finished
-	// or immediately if there is no current queue
-	onQueueFinished(fn){
-		if(typeof fn !== 'function') return false;
-		this.completeHandler = fn;
-		if(!this.parsing) this.completeHandler();
-	}
-	
-	// handle a portion of the data file from a read stream
-	onStream(chunk){
-		this.pending_chunks.push(chunk);
-		this.handlePendingChunks();
-	}
-	
-	// Add a function to do something with each query.
-	// by running the callback and garbage collecting we can handle large files
-	onQuery(fn){
-		if(typeof fn !== 'function') return false;
-		this.queryHandler = fn;
+		
 	}
 	
 	////////////////////////////////////////////////////////////////////////////
 	// "Private" methods" //////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////
 	
-	// recursively parse pending chunks of data
-	handlePendingChunks(){
-		if(this.parsing) return;
-		this.parsing = true;
-		var chunk = this.pending_chunks.shift();
+	// handle piped data
+	async _write(chunk, enc, next) {
+		var query;
+		chunk = chunk.toString(this.encoding);
 		for (let i = 0; i < chunk.length; i++) {
 			let char = chunk[i];
-			this.parseChar(char);
+			query = this.parseChar(char);
+			if(query) await this.executeQuery(query);
 		}
-		this.parsing = false;
-		if(this.pending_chunks.length) this.handlePendingChunks();
-		else this.completeHandler();
+		next();
+	}
+	
+	// Execute a query, return a Promise
+	executeQuery(query){
+		return new Promise((resolve, reject)=>{
+			this.db_connection.query(query, err=>{
+				if (err){
+					reject(err);
+				}else{
+					resolve();
+				}
+			});
+		});
 	}
 	
 	// Parse the next char in the string
+	// return a full query if one is detected after parsing this char
+	// else return false.
 	parseChar(char){
 		this.checkEscapeChar();
 		this.buffer.push(char);
-
 		this.checkNewDelimiter(char);
-
 		this.checkQuote(char);
-		this.checkEndOfQuery();
+		return this.checkEndOfQuery();
 	}
 	
 	// Check if the current char has been escaped
@@ -121,7 +108,9 @@ class queryParser{
 	}
 	
 	// Check if we're at the end of the query
+	// return the query if so, else return false;
 	checkEndOfQuery(){
+		var query = false;
 		var demiliterFound = false;
 		if(!this.quoteType && this.buffer.length >= this.delimiter.length){
 			demiliterFound = this.buffer.slice(-this.delimiter.length).join('') === this.delimiter;
@@ -130,8 +119,10 @@ class queryParser{
 		if (demiliterFound) {
 			// trim the delimiter off the end
 			this.buffer.splice(-this.delimiter.length, this.delimiter.length);
-			this.queryHandler(this.buffer.join('').trim());
+			query = this.buffer.join('').trim();
 			this.buffer = [];
 		}
+		
+		return query;
 	}
 }

@@ -140,22 +140,20 @@ class Importer{
 	_importSingleFile(filepath){
 		return new Promise((resolve, reject)=>{
 			var error = null;
-			var parser = new queryParser();
-			parser.onQuery(query=>{
-				this._conn.query(query, err=>{
-					if (err) error = err;
-				});
+			
+			var parser = new queryParser({
+				db_connection: this._conn,
+				encoding: this._encoding
 			});
+			
 			var readerStream = fs.createReadStream(filepath);
 			readerStream.setEncoding(this._encoding);
-			readerStream.on('data', chunk=>parser.onStream(chunk));
-			readerStream.on('end', ()=>{
-				parser.onQueueFinished(()=>{
-					this._imported.push(filepath);
-					resolve();
-				});
-			});
+			readerStream.pipe(parser);
 			readerStream.on('error', err=>reject(err));
+			readerStream.on('end', ()=>{
+				this._imported.push(filepath);
+				resolve();
+			});
 		});
 	}
 	
