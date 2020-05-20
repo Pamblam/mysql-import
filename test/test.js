@@ -19,21 +19,13 @@ mysqlConnect(config);
 
 const fs = require('fs');
 const MySQLImport = require('../mysql-import.js');
-const SQLDumpGenerator = require('./SQLDumpGenerator.js');
 const importer = new MySQLImport(config);
 
 const start_time = new Date();
-var big_dump_file;
 
 describe('Running All Tests', ()=>{
 	
-	before(async function(){
-		this.timeout(0);
-
-		const generator = new SQLDumpGenerator(2.5 * 1e+9, 'large_dump.sql');
-		await generator.init();
-		big_dump_file = generator.target_file;
-		
+	before(async function(){		
 		await createTestDB('mysql-import-test-db-1');
 		await createTestDB('mysql-import-test-db-2');
 		query("USE `mysql-import-test-db-1`");
@@ -46,13 +38,6 @@ describe('Running All Tests', ()=>{
 		await destroyTestDB('mysql-import-test-db-2');
 		closeConnection();
 		console.log(`All tests completed in ${(new Date() - start_time)/1000} seconds.`);
-	});
-	
-	it('Import large dataset', async function(){
-		this.timeout(0);
-		await importer.import(big_dump_file);
-		var tables = await query("SHOW TABLES;");
-		expect(tables.length).to.equal(3);
 	});
 	
 	it('Import two tables', async ()=>{
@@ -96,6 +81,11 @@ describe('Running All Tests', ()=>{
 		await importer.import(__dirname+'/sample_dump_files/');
 		var tables = await query("SHOW TABLES;");
 		expect(tables.length).to.equal(6);
+	});
+	
+	it('Test imported', async ()=>{
+		var files = importer.getImported();
+		expect(files.length).to.equal(10);
 	});
 	
 	it('Test unsupported encoding', ()=>{

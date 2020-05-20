@@ -160,42 +160,6 @@ class Importer{
 	}
 	
 	/**
-	 * Import a single .sql file into the database
-	 * @param {type} filepath
-	 * @returns {Promise}
-	 */
-	_importSingleFile_nostream(filepath){
-		return new Promise((resolve, reject)=>{
-			fs.readFile(filepath, this._encoding, (err, queriesString) => {
-				if(err){
-					reject(err);
-					return;
-				}
-				var queries = new queryParser(queriesString).queries;
-				var error = null;
-				slowLoop(queries, (query, index, next)=>{
-					if(error){
-						next();
-						return;
-					}
-					this._conn.query(query, err=>{
-						if (err) error = err;
-						next();
-					});
-				}).then(()=>{
-					if(error){
-						reject(error);
-					}else{
-						this._imported.push(filepath);
-						resolve();
-					}
-				});
-				
-			});
-		});
-	}
-	
-	/**
 	 * Connect to the mysql server
 	 * @returns {Promise}
 	 */
