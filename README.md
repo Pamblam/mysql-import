@@ -45,7 +45,7 @@ const importer = new Importer({host, user, password, database});
 
 importer.import('path/to/dump.sql').then(()=>{
   var files_imported = importer.getImported();
-  console.log('${files_imported.length} SQL file(s) imported.');
+  console.log(`${files_imported.length} SQL file(s) imported.`);
 }).catch(err=>{
   console.error(err);
 });
