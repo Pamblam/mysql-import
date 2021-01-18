@@ -1,15 +1,14 @@
 
 const crypto = require("crypto");
 const fs = require('fs');
-const os = require('os');
-const path = require('path');
+
 
 class SQLDumpGenerator{
-	constructor(target_bytes, filename){
+	constructor(target_bytes, filepath){
 		this.total_bytes = 0;
 		this.target_bytes = target_bytes;
 		this.pct = 0;
-		this.target_file = path.join(os.tmpdir(), filename);
+		this.target_file = filepath;
 		this.start_time = new Date().getTime();
 		this.stream = fs.createWriteStream(this.target_file, {flags: 'w'});
 		this.stream.on('error', console.error);

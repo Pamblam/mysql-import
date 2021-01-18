@@ -5,6 +5,14 @@ class queryParser extends stream.Writable{
 		options = options || {};
 		super(options);
 		
+		// Total size of stream
+		this.stream_size = options.size;
+		
+		this.processed_size = 0;
+		
+		// The progress callback
+		this.onProgress = options.onProgress || (() => {});
+		
 		// the encoding of the file being read
 		this.encoding = options.encoding || 'utf8';
 		
@@ -43,6 +51,8 @@ class queryParser extends stream.Writable{
 			query = this.parseChar(char);
 			if(query) await this.executeQuery(query);
 		}
+		this.processed_size += chunk.length;
+		this.onProgress(this.processed_size, this.stream_size);
 		next();
 	}
 	

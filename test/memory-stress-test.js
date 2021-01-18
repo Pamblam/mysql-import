@@ -5,11 +5,13 @@
 
 // SET THESE FOR LOCAL TESTING ONLY!
 // RESET THEM TO '' BEFORE COMMITING CHANGES!
-const mysql_host = '';
-const mysql_user = '';
-const mysql_pass = '';
+const mysql_host = 'localhost';
+const mysql_user = 'root';
+const mysql_pass = 'ourtown1972';
 
+const fs = require('fs');
 const expect = require('chai').expect;
+const path = require('path');
 const {errorHandler,query,mysqlConnect,createTestDB,destroyTestDB,closeConnection} = require('./test-helpers.js');
 
 var config = {
@@ -21,22 +23,34 @@ var config = {
 
 mysqlConnect(config);
 
-const fs = require('fs');
+
 const MySQLImport = require('../mysql-import.js');
 const SQLDumpGenerator = require('./SQLDumpGenerator.js');
 const importer = new MySQLImport(config);
 
+importer.onProgress((file_count, file_no, byte_total, byte_progress)=>{
+	var percent = Math.floor(byte_progress / byte_total * 10000) / 100
+	process.stdout.clearLine();
+	process.stdout.cursorTo(0);
+	process.stdout.write(`File ${file_no} of ${file_count}: processing ${byte_progress} of ${byte_total} bytes - ${percent}% Complete`);
+});
+
 const start_time = new Date();
-var big_dump_file;
+var big_dump_file = path.join(__dirname, 'large_dump.sql');
 
 describe('Running Memory Tests', ()=>{
 	
 	before(async function(){
 		this.timeout(0);
-		const generator = new SQLDumpGenerator(2.5 * 1e+9, 'large_dump.sql');
-		await generator.init();
-		big_dump_file = generator.target_file;
+		if(!fs.existsSync(big_dump_file)){
+			console.log("generating new large dump file.");
+			const generator = new SQLDumpGenerator(2.5 * 1e+9, big_dump_file);
+			await generator.init();
+		}else{
+			console.log("Using pre-generated dump file.");
+		}
 		importer.setEncoding('utf8');
+		await createTestDB('mysql-import-test-db-1');
 	});
 	
 	it('Import large dataset', async function(){

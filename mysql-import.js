@@ -1,5 +1,5 @@
 /**
- * mysql-import - v4.1.14
+ * mysql-import - v4.1.19
  * Import .sql into a MySQL database with Node.
  * @author Rob Parham
  * @website https://github.com/pamblam/mysql-import#readme
@@ -16,7 +16,7 @@ const stream = require('stream');
 
 /**
  * mysql-import - Importer class
- * @version 4.1.14
+ * @version 4.1.19
  * https://github.com/Pamblam/mysql-import
  */
 
@@ -31,6 +31,9 @@ class Importer{
 		this._conn = null;
 		this._encoding = 'utf8';
 		this._imported = [];
+		this._progressCB = ()=>{};
+		this._total_files = 0;
+		this._current_file_no = 0;
 	}
 	
 	/**
@@ -84,6 +87,11 @@ class Importer{
 		});
 	}
 	
+	onProgress(cb){
+		if(typeof cb !== 'function') return;
+		this._progressCB = cb;
+	}
+	
 	/**
 	 * Import (an) .sql file(s).
 	 * @param string|array input - files or paths to scan for .sql files
@@ -94,8 +102,11 @@ class Importer{
 			try{
 				await this._connect();
 				var files = await this._getSQLFilePaths(...input);
+				this._total_files = files.length;
+				
 				var error = null;
 				await slowLoop(files, (file, index, next)=>{
+					this._current_file_no++;
 					if(error){
 						next();
 						return;
@@ -155,10 +166,15 @@ class Importer{
 	_importSingleFile(filepath){
 		return new Promise((resolve, reject)=>{
 			var error = null;
+			var stats = fs.statSync(filepath);
 			
 			var parser = new queryParser({
 				db_connection: this._conn,
-				encoding: this._encoding
+				encoding: this._encoding,
+				size: stats.size,
+				onProgress: (progress, total) => {
+					this._progressCB(this._total_files, this._current_file_no, total, progress);
+				}
 			});
 			
 			var readerStream = fs.createReadStream(filepath);
@@ -295,7 +311,7 @@ class Importer{
 /**
  * Build version number
  */
-Importer.version = '4.1.14';
+Importer.version = '4.1.19';
 
 module.exports = Importer;
 
@@ -328,6 +344,14 @@ class queryParser extends stream.Writable{
 	constructor(options){
 		options = options || {};
 		super(options);
+		
+		// Total size of stream
+		this.stream_size = options.size;
+		
+		this.processed_size = 0;
+		
+		// The progress callback
+		this.onProgress = options.onProgress || (() => {});
 		
 		// the encoding of the file being read
 		this.encoding = options.encoding || 'utf8';
@@ -367,6 +391,8 @@ class queryParser extends stream.Writable{
 			query = this.parseChar(char);
 			if(query) await this.executeQuery(query);
 		}
+		this.processed_size += chunk.length;
+		this.onProgress(this.processed_size, this.stream_size);
 		next();
 	}
 	
