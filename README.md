@@ -4,7 +4,7 @@
 	<img src='https://i.imgur.com/AOfuTLA.png'>
 </p>
 
-*Version 5.0.18* ([NPM](https://www.npmjs.com/package/mysql-import)) ([Github](https://github.com/Pamblam/mysql-import/))
+*Version 5.0.19* ([NPM](https://www.npmjs.com/package/mysql-import)) ([Github](https://github.com/Pamblam/mysql-import/))
 
 [![Build Status](https://api.travis-ci.org/Pamblam/mysql-import.svg?branch=master)](https://travis-ci.org/Pamblam/mysql-import/) [![Coverage Status](https://coveralls.io/repos/github/Pamblam/mysql-import/badge.svg?branch=master)](https://coveralls.io/github/Pamblam/mysql-import?branch=master)
 
@@ -48,8 +48,8 @@ const importer = new Importer({host, user, password, database});
 
 // New onProgress method, added in version 5.0!
 importer.onProgress(progress=>{
-	var percent = Math.floor(progress.bytes_processed / progress.total_bytes * 10000) / 100;
-	console.log(`${percent}% Completed`);
+  var percent = Math.floor(progress.bytes_processed / progress.total_bytes * 10000) / 100;
+  console.log(`${percent}% Completed`);
 });
 
 importer.import('path/to/dump.sql').then(()=>{

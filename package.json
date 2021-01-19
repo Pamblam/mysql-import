@@ -42,5 +42,5 @@
     "memory-test": "node_modules/.bin/mocha ./test/memory-stress-test.js --timeout 0",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
-  "version": "5.0.18"
+  "version": "5.0.19"
 }

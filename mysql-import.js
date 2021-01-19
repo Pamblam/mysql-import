@@ -1,5 +1,5 @@
 /**
- * mysql-import - v5.0.18
+ * mysql-import - v5.0.19
  * Import .sql into a MySQL database with Node.
  * @author Rob Parham
  * @website https://github.com/pamblam/mysql-import#readme
@@ -16,7 +16,7 @@ const stream = require('stream');
 
 /**
  * mysql-import - Importer class
- * @version 5.0.18
+ * @version 5.0.19
  * https://github.com/Pamblam/mysql-import
  */
 
@@ -369,7 +369,7 @@ class Importer{
 /**
  * Build version number
  */
-Importer.version = '5.0.18';
+Importer.version = '5.0.19';
 
 module.exports = Importer;
 
