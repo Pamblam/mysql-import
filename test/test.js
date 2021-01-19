@@ -1,9 +1,9 @@
 
 // SET THESE FOR LOCAL TESTING ONLY!
 // RESET THEM TO '' BEFORE COMMITING CHANGES!
-const mysql_host = '';
-const mysql_user = '';
-const mysql_pass = '';
+const mysql_host = 'localhost';
+const mysql_user = 'root';
+const mysql_pass = 'ourtown1972';
 
 const expect = require('chai').expect;
 const {errorHandler,query,mysqlConnect,createTestDB,destroyTestDB,closeConnection} = require('./test-helpers.js');
@@ -21,16 +21,46 @@ const fs = require('fs');
 const MySQLImport = require('../mysql-import.js');
 const importer = new MySQLImport(config);
 
+// For coverage
+importer.onProgress('Not a function');
+importer.onDumpCompleted('Not a function');
+
+importer.onProgress(progress=>{
+	var percent = Math.floor(progress.bytes_processed / progress.total_bytes * 10000) / 100;
+	var filename = progress.file_path.split("/").pop();
+	var message = `\tFile ${progress.file_no} of ${progress.total_files}: `+
+			`processing ${filename} - ${percent}% Complete`;
+	process.stdout.clearLine();
+	process.stdout.cursorTo(0);
+	process.stdout.write(message);
+});
+
+importer.onDumpCompleted(status=>{
+	var filename = status.file_path.split("/").pop();
+	var message;
+	if(status.error){
+		message = `\tFile ${status.file_no} of ${status.total_files}: `+
+			`Was not processed.\n`;
+	}else{
+		message = `\tFile ${status.file_no} of ${status.total_files}: `+
+			`Completed processing ${filename}\n`;
+	}
+	process.stdout.clearLine();
+	process.stdout.cursorTo(0);
+	process.stdout.write(message);
+});
+
+importer.setEncoding('utf8');
+
 const start_time = new Date();
 
 describe('Running All Tests', ()=>{
 	
-	before(async ()=>{
+	before(async function(){	
 		await createTestDB('mysql-import-test-db-1');
-		await createTestDB('mysql-import-test-db-2');
+		await createTestDB('mysql-import-test-db-2');		
 		query("USE `mysql-import-test-db-1`");
 		await importer.import(__dirname+'/sample_dump_files/test.sql');
-		importer.setEncoding('utf8');
 	});
 	
 	after(async ()=>{
@@ -81,6 +111,11 @@ describe('Running All Tests', ()=>{
 		await importer.import(__dirname+'/sample_dump_files/');
 		var tables = await query("SHOW TABLES;");
 		expect(tables.length).to.equal(6);
+	});
+	
+	it('Test imported', async ()=>{
+		var files = importer.getImported();
+		expect(files.length).to.equal(10);
 	});
 	
 	it('Test unsupported encoding', ()=>{

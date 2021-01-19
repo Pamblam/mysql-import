@@ -1,5 +1,5 @@
 /**
- * mysql-import - v4.0.24
+ * mysql-import - v5.0.18
  * Import .sql into a MySQL database with Node.
  * @author Rob Parham
  * @website https://github.com/pamblam/mysql-import#readme
@@ -11,11 +11,12 @@
 const mysql = require('mysql');
 const fs = require('fs');
 const path = require("path");
+const stream = require('stream');
 
 
 /**
  * mysql-import - Importer class
- * @version 4.0.24
+ * @version 5.0.18
  * https://github.com/Pamblam/mysql-import
  */
 
@@ -30,6 +31,10 @@ class Importer{
 		this._conn = null;
 		this._encoding = 'utf8';
 		this._imported = [];
+		this._progressCB = ()=>{};
+		this._dumpCompletedCB = ()=>{};
+		this._total_files = 0;
+		this._current_file_no = 0;
 	}
 	
 	/**
@@ -71,6 +76,7 @@ class Importer{
 		return new Promise((resolve, reject)=>{
 			if(!this._conn){
 				this._connection_settings.database = database;
+				resolve();
 				return;
 			}
 			this._conn.changeUser({database}, err=>{
@@ -84,6 +90,36 @@ class Importer{
 	}
 	
 	/**
+	 * Set a progress callback
+	 * @param {Function} cb - Callback function is called whenever a chunk of
+	 *		the stream is read. It is provided an object with the folling properties:
+	 *			- total_files: The total files in the queue. 
+	 *			- file_no: The number of the current dump file in the queue. 
+	 *			- bytes_processed: The number of bytes of the file processed.
+	 *			- total_bytes: The size of the dump file.
+	 *			- file_path: The full path to the dump file.
+	 * @returns {undefined}
+	 */
+	onProgress(cb){
+		if(typeof cb !== 'function') return;
+		this._progressCB = cb;
+	}
+	
+	/**
+	 * Set a progress callback
+	 * @param {Function} cb - Callback function is called whenever a dump
+	 *		file has finished processing.
+	 *			- total_files: The total files in the queue. 
+	 *			- file_no: The number of the current dump file in the queue. 
+	 *			- file_path: The full path to the dump file.
+	 * @returns {undefined}
+	 */
+	onDumpCompleted(cb){
+		if(typeof cb !== 'function') return;
+		this._dumpCompletedCB = cb;
+	}
+	
+	/**
 	 * Import (an) .sql file(s).
 	 * @param string|array input - files or paths to scan for .sql files
 	 * @returns {Promise}
@@ -93,8 +129,12 @@ class Importer{
 			try{
 				await this._connect();
 				var files = await this._getSQLFilePaths(...input);
+				this._total_files = files.length;
+				this._current_file_no = 0;
+				
 				var error = null;
 				await slowLoop(files, (file, index, next)=>{
+					this._current_file_no++;
 					if(error){
 						next();
 						return;
@@ -148,37 +188,57 @@ class Importer{
 	
 	/**
 	 * Import a single .sql file into the database
-	 * @param {type} filepath
+	 * @param {object} fileObj - Object containing the following properties:
+	 *		- file: The full path to the file
+	 *		- size: The size of the file in bytes
 	 * @returns {Promise}
 	 */
-	_importSingleFile(filepath){
+	_importSingleFile(fileObj){
 		return new Promise((resolve, reject)=>{
-			fs.readFile(filepath, this._encoding, (err, queriesString) => {
-				if(err){
-					reject(err);
-					return;
-				}
-				var queries = new queryParser(queriesString).queries;
-				var error = null;
-				slowLoop(queries, (query, index, next)=>{
-					if(error){
-						next();
-						return;
-					}
-					this._conn.query(query, err=>{
-						if (err) error = err;
-						next();
+			
+			var parser = new queryParser({
+				db_connection: this._conn,
+				encoding: this._encoding,
+				onProgress: (progress) => {
+					this._progressCB({
+						total_files: this._total_files, 
+						file_no: this._current_file_no, 
+						bytes_processed: progress, 
+						total_bytes: fileObj.size,
+						file_path: fileObj.file
 					});
-				}).then(()=>{
-					if(error){
-						reject(error);
-					}else{
-						this._imported.push(filepath);
-						resolve();
-					}
-				});
-				
+				}
 			});
+			
+			const dumpCompletedCB = (err) => this._dumpCompletedCB({
+				total_files: this._total_files, 
+				file_no: this._current_file_no, 
+				file_path: fileObj.file,
+				error: err
+			});
+			
+			parser.on('finish', ()=>{
+				this._imported.push(fileObj.file);
+				dumpCompletedCB(null);
+				resolve();
+			});
+			
+			
+			parser.on('error', (err)=>{
+				dumpCompletedCB(err);
+				reject(err);
+			});
+			
+			var readerStream = fs.createReadStream(fileObj.file);
+			readerStream.setEncoding(this._encoding);
+			
+			/* istanbul ignore next */
+			readerStream.on('error', (err)=>{
+				dumpCompletedCB(err);
+				reject(err);
+			});
+			
+			readerStream.pipe(parser);
 		});
 	}
 	
@@ -275,7 +335,10 @@ class Importer{
 					var stat = await this._statFile(filepath);
 					if(stat.isFile()){
 						if(filepath.toLowerCase().substring(filepath.length-4) === '.sql'){
-							full_paths.push(path.resolve(filepath));
+							full_paths.push({
+								file: path.resolve(filepath),
+								size: stat.size
+							});
 						}
 						next();
 					}else if(stat.isDirectory()){
@@ -285,6 +348,7 @@ class Importer{
 						full_paths.push(...sql_files);
 						next();
 					}else{
+						/* istanbul ignore next */
 						next();
 					}
 				}catch(err){
@@ -305,7 +369,7 @@ class Importer{
 /**
  * Build version number
  */
-Importer.version = '4.0.24';
+Importer.version = '5.0.18';
 
 module.exports = Importer;
 
@@ -324,6 +388,7 @@ module.exports = Importer;
  */
 function slowLoop(items, loopBody) {
 	return new Promise(f => {
+		/* istanbul ignore next */
 		if(!items.length) return f();
 		let done = arguments[2] || f;
 		let idx = arguments[3] || 0;
@@ -333,19 +398,28 @@ function slowLoop(items, loopBody) {
 }
 
 
-class queryParser{
+class queryParser extends stream.Writable{
 	
-	constructor(queriesString){
+	constructor(options){
+		/* istanbul ignore next */
+		options = options || {};
+		super(options);
 		
-		// Input string containing SQL queries
-		this.queriesString = queriesString.trim();
+		// The number of bytes processed so far
+		this.processed_size = 0;
+		
+		// The progress callback
+		this.onProgress = options.onProgress || (() => {});
+		
+		// the encoding of the file being read
+		this.encoding = options.encoding || 'utf8';
+		
+		// the encoding of the database connection
+		this.db_connection = options.db_connection;
 		
 		// The quote type (' or ") if the parser 
 		// is currently inside of a quote, else false
 		this.quoteType = false;
-		
-		// An array of complete queries
-		this.queries = [];
 		
 		// An array of chars representing the substring
 		// the is currently being parsed
@@ -359,28 +433,55 @@ class queryParser{
 		
 		// Are we currently seeking new delimiter
 		this.seekingDelimiter = false;
-
-		// Does the sql set change delimiter?
-		this.hasDelimiter = queriesString.toLowerCase().includes('delimiter ');
-
-		// Iterate over each char in the string
-		for (let i = 0; i < this.queriesString.length; i++) {
-			let char = this.queriesString[i];
-			this.parseChar(char);
+		
+	}
+	
+	////////////////////////////////////////////////////////////////////////////
+	// "Private" methods" //////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////
+	
+	// handle piped data
+	async _write(chunk, enc, next) {
+		var query;
+		chunk = chunk.toString(this.encoding);
+		var error = null;
+		for (let i = 0; i < chunk.length; i++) {
+			let char = chunk[i];
+			query = this.parseChar(char);
+			try{
+				if(query) await this.executeQuery(query);
+			}catch(e){
+				error = e;
+				break;
+			}
 		}
+		this.processed_size += chunk.length;
+		this.onProgress(this.processed_size);
+		next(error);
+	}
+	
+	// Execute a query, return a Promise
+	executeQuery(query){
+		return new Promise((resolve, reject)=>{
+			this.db_connection.query(query, err=>{
+				if (err){
+					reject(err);
+				}else{
+					resolve();
+				}
+			});
+		});
 	}
 	
 	// Parse the next char in the string
+	// return a full query if one is detected after parsing this char
+	// else return false.
 	parseChar(char){
 		this.checkEscapeChar();
 		this.buffer.push(char);
-
-		if (this.hasDelimiter) {
-			this.checkNewDelimiter(char);
-		}
-
+		this.checkNewDelimiter(char);
 		this.checkQuote(char);
-		this.checkEndOfQuery();
+		return this.checkEndOfQuery();
 	}
 	
 	// Check if the current char has been escaped
@@ -421,7 +522,9 @@ class queryParser{
 	}
 	
 	// Check if we're at the end of the query
+	// return the query if so, else return false;
 	checkEndOfQuery(){
+		var query = false;
 		var demiliterFound = false;
 		if(!this.quoteType && this.buffer.length >= this.delimiter.length){
 			demiliterFound = this.buffer.slice(-this.delimiter.length).join('') === this.delimiter;
@@ -430,8 +533,10 @@ class queryParser{
 		if (demiliterFound) {
 			// trim the delimiter off the end
 			this.buffer.splice(-this.delimiter.length, this.delimiter.length);
-			this.queries.push(this.buffer.join('').trim());
+			query = this.buffer.join('').trim();
 			this.buffer = [];
 		}
+		
+		return query;
 	}
 }

@@ -1,17 +1,26 @@
 
-class queryParser{
+class queryParser extends stream.Writable{
 	
-	constructor(queriesString){
+	constructor(options){
+		/* istanbul ignore next */
+		options = options || {};
+		super(options);
 		
-		// Input string containing SQL queries
-		this.queriesString = queriesString.trim();
+		// The number of bytes processed so far
+		this.processed_size = 0;
+		
+		// The progress callback
+		this.onProgress = options.onProgress || (() => {});
+		
+		// the encoding of the file being read
+		this.encoding = options.encoding || 'utf8';
+		
+		// the encoding of the database connection
+		this.db_connection = options.db_connection;
 		
 		// The quote type (' or ") if the parser 
 		// is currently inside of a quote, else false
 		this.quoteType = false;
-		
-		// An array of complete queries
-		this.queries = [];
 		
 		// An array of chars representing the substring
 		// the is currently being parsed
@@ -25,28 +34,55 @@ class queryParser{
 		
 		// Are we currently seeking new delimiter
 		this.seekingDelimiter = false;
-
-		// Does the sql set change delimiter?
-		this.hasDelimiter = queriesString.toLowerCase().includes('delimiter ');
-
-		// Iterate over each char in the string
-		for (let i = 0; i < this.queriesString.length; i++) {
-			let char = this.queriesString[i];
-			this.parseChar(char);
+		
+	}
+	
+	////////////////////////////////////////////////////////////////////////////
+	// "Private" methods" //////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////
+	
+	// handle piped data
+	async _write(chunk, enc, next) {
+		var query;
+		chunk = chunk.toString(this.encoding);
+		var error = null;
+		for (let i = 0; i < chunk.length; i++) {
+			let char = chunk[i];
+			query = this.parseChar(char);
+			try{
+				if(query) await this.executeQuery(query);
+			}catch(e){
+				error = e;
+				break;
+			}
 		}
+		this.processed_size += chunk.length;
+		this.onProgress(this.processed_size);
+		next(error);
+	}
+	
+	// Execute a query, return a Promise
+	executeQuery(query){
+		return new Promise((resolve, reject)=>{
+			this.db_connection.query(query, err=>{
+				if (err){
+					reject(err);
+				}else{
+					resolve();
+				}
+			});
+		});
 	}
 	
 	// Parse the next char in the string
+	// return a full query if one is detected after parsing this char
+	// else return false.
 	parseChar(char){
 		this.checkEscapeChar();
 		this.buffer.push(char);
-
-		if (this.hasDelimiter) {
-			this.checkNewDelimiter(char);
-		}
-
+		this.checkNewDelimiter(char);
 		this.checkQuote(char);
-		this.checkEndOfQuery();
+		return this.checkEndOfQuery();
 	}
 	
 	// Check if the current char has been escaped
@@ -87,7 +123,9 @@ class queryParser{
 	}
 	
 	// Check if we're at the end of the query
+	// return the query if so, else return false;
 	checkEndOfQuery(){
+		var query = false;
 		var demiliterFound = false;
 		if(!this.quoteType && this.buffer.length >= this.delimiter.length){
 			demiliterFound = this.buffer.slice(-this.delimiter.length).join('') === this.delimiter;
@@ -96,8 +134,10 @@ class queryParser{
 		if (demiliterFound) {
 			// trim the delimiter off the end
 			this.buffer.splice(-this.delimiter.length, this.delimiter.length);
-			this.queries.push(this.buffer.join('').trim());
+			query = this.buffer.join('').trim();
 			this.buffer = [];
 		}
+		
+		return query;
 	}
 }

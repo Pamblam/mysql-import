@@ -1,9 +1,10 @@
 
+
 <p align="center">
 	<img src='https://i.imgur.com/AOfuTLA.png'>
 </p>
 
-*Version 4.0.24* ([NPM](https://www.npmjs.com/package/mysql-import)) ([Github](https://github.com/Pamblam/mysql-import/))
+*Version 5.0.18* ([NPM](https://www.npmjs.com/package/mysql-import)) ([Github](https://github.com/Pamblam/mysql-import/))
 
 [![Build Status](https://api.travis-ci.org/Pamblam/mysql-import.svg?branch=master)](https://travis-ci.org/Pamblam/mysql-import/) [![Coverage Status](https://coveralls.io/repos/github/Pamblam/mysql-import/badge.svg?branch=master)](https://coveralls.io/github/Pamblam/mysql-import?branch=master)
 
@@ -20,6 +21,8 @@ Import MySQL files with Node!
    - [`importer.use(database)`](#importerprototypeusedatabase)
    - [`importer.import(...input)`](#importerprototypeimportinput)
    - [`importer.disconnect(graceful=true)`](#importerprototypedisconnectgracefultrue)
+   - [`importer.onProgress(callback)`](#importerprototypeonprogresscallback)
+   - [`importer.onDumpCompleted(callback)`](#importerprototypeondumpcompletedcallback)
  - [Contributing](#contributing)
 
 ## Install
@@ -43,6 +46,12 @@ const database = 'mydb';
 const Importer = require('mysql-import');
 const importer = new Importer({host, user, password, database});
 
+// New onProgress method, added in version 5.0!
+importer.onProgress(progress=>{
+	var percent = Math.floor(progress.bytes_processed / progress.total_bytes * 10000) / 100;
+	console.log(`${percent}% Completed`);
+});
+
 importer.import('path/to/dump.sql').then(()=>{
   var files_imported = importer.getImported();
   console.log(`${files_imported.length} SQL file(s) imported.`);
@@ -52,23 +61,42 @@ importer.import('path/to/dump.sql').then(()=>{
 ```
 ## Methods
 
-#### new Importer({host, user, password[, database]})
+### `new Importer({host, user, password[, database]})`
 
 The constructor requires an object with a `host`, `user`, and `password` parameter. Passing in a database parameter is optional.
 
-#### Importer.prototype.getImported()
+### `Importer.prototype.getImported()`
 
 Get an array of files imported.
 
-#### Importer.prototype.setEncoding(encoding)
+### `Importer.prototype.setEncoding(encoding)`
 
 Set the encoding to use when reading import files. Supported arguments are: `utf8`, `ucs2`, `utf16le`, `latin1`, `ascii`, `base64`, or `hex`.
 
-#### Importer.prototype.use(database)
+### `Importer.prototype.use(database)`
 
 Set or change the database to import to.
 
-#### Importer.prototype.import(...input)
+### `Importer.prototype.onProgress(callback)`
+
+*(New in v. 5.0!) -* Set a callback to be called as the importer processes chunks of the dump file. Callback is provided an object with the following properties:
+
+ - `total_files`: The total files in the queue. 
+ - `file_no`: The number of the current dump file in the queue. 
+ - `bytes_processed`: The number of bytes of the file processed.
+ - `total_bytes`: The size of the dump file.
+ - `file_path`: The full path to the dump file.
+
+### `Importer.prototype.onDumpCompleted(callback)`
+
+*(New in v. 5.0!) -* Set a callback to be called after each dump file has completed processing. Callback is provided an object with the following properties:
+
+ - `total_files`: The total files in the queue. 
+ - `file_no`: The number of the current dump file in the queue. 
+ - `file_path`: The full path to the dump file.
+ - `error`: If there was an error, the error object; if no errors, this will be `null`.
+
+### `Importer.prototype.import(...input)`
 
 Import an `.sql` file or files into the database. This method will take...
 
@@ -86,7 +114,7 @@ Import an `.sql` file or files into the database. This method will take...
    ```
  - Any combination of any of the above.
 
-#### Importer.prototype.disconnect(graceful=true)
+### `Importer.prototype.disconnect(graceful=true)`
 
 Disconnects the connection. If `graceful` is switched to false it will force close any connections. This is called automatically after files are imported so typically *this method should never be required*.
 

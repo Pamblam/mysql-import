@@ -3,3 +3,4 @@
 /package-lock.js
 /coverage/
 /.nyc_output/
+/test/large_dump.sql

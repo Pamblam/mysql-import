@@ -38,8 +38,9 @@
   },
   "scripts": {
     "build": "grunt",
-    "test": "node_modules/.bin/nyc --reporter=html --reporter=text node_modules/.bin/mocha --timeout 15000",
+    "test": "node_modules/.bin/nyc --reporter=html --reporter=text node_modules/.bin/mocha ./test/test.js --timeout 15000",
+    "memory-test": "node_modules/.bin/mocha ./test/memory-stress-test.js --timeout 0",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
-  "version": "4.0.24"
+  "version": "5.0.18"
 }

@@ -16,6 +16,10 @@ class Importer{
 		this._conn = null;
 		this._encoding = 'utf8';
 		this._imported = [];
+		this._progressCB = ()=>{};
+		this._dumpCompletedCB = ()=>{};
+		this._total_files = 0;
+		this._current_file_no = 0;
 	}
 	
 	/**
@@ -57,6 +61,7 @@ class Importer{
 		return new Promise((resolve, reject)=>{
 			if(!this._conn){
 				this._connection_settings.database = database;
+				resolve();
 				return;
 			}
 			this._conn.changeUser({database}, err=>{
@@ -70,6 +75,36 @@ class Importer{
 	}
 	
 	/**
+	 * Set a progress callback
+	 * @param {Function} cb - Callback function is called whenever a chunk of
+	 *		the stream is read. It is provided an object with the folling properties:
+	 *			- total_files: The total files in the queue. 
+	 *			- file_no: The number of the current dump file in the queue. 
+	 *			- bytes_processed: The number of bytes of the file processed.
+	 *			- total_bytes: The size of the dump file.
+	 *			- file_path: The full path to the dump file.
+	 * @returns {undefined}
+	 */
+	onProgress(cb){
+		if(typeof cb !== 'function') return;
+		this._progressCB = cb;
+	}
+	
+	/**
+	 * Set a progress callback
+	 * @param {Function} cb - Callback function is called whenever a dump
+	 *		file has finished processing.
+	 *			- total_files: The total files in the queue. 
+	 *			- file_no: The number of the current dump file in the queue. 
+	 *			- file_path: The full path to the dump file.
+	 * @returns {undefined}
+	 */
+	onDumpCompleted(cb){
+		if(typeof cb !== 'function') return;
+		this._dumpCompletedCB = cb;
+	}
+	
+	/**
 	 * Import (an) .sql file(s).
 	 * @param string|array input - files or paths to scan for .sql files
 	 * @returns {Promise}
@@ -79,8 +114,12 @@ class Importer{
 			try{
 				await this._connect();
 				var files = await this._getSQLFilePaths(...input);
+				this._total_files = files.length;
+				this._current_file_no = 0;
+				
 				var error = null;
 				await slowLoop(files, (file, index, next)=>{
+					this._current_file_no++;
 					if(error){
 						next();
 						return;
@@ -134,37 +173,57 @@ class Importer{
 	
 	/**
 	 * Import a single .sql file into the database
-	 * @param {type} filepath
+	 * @param {object} fileObj - Object containing the following properties:
+	 *		- file: The full path to the file
+	 *		- size: The size of the file in bytes
 	 * @returns {Promise}
 	 */
-	_importSingleFile(filepath){
+	_importSingleFile(fileObj){
 		return new Promise((resolve, reject)=>{
-			fs.readFile(filepath, this._encoding, (err, queriesString) => {
-				if(err){
-					reject(err);
-					return;
-				}
-				var queries = new queryParser(queriesString).queries;
-				var error = null;
-				slowLoop(queries, (query, index, next)=>{
-					if(error){
-						next();
-						return;
-					}
-					this._conn.query(query, err=>{
-						if (err) error = err;
-						next();
+			
+			var parser = new queryParser({
+				db_connection: this._conn,
+				encoding: this._encoding,
+				onProgress: (progress) => {
+					this._progressCB({
+						total_files: this._total_files, 
+						file_no: this._current_file_no, 
+						bytes_processed: progress, 
+						total_bytes: fileObj.size,
+						file_path: fileObj.file
 					});
-				}).then(()=>{
-					if(error){
-						reject(error);
-					}else{
-						this._imported.push(filepath);
-						resolve();
-					}
-				});
-				
+				}
 			});
+			
+			const dumpCompletedCB = (err) => this._dumpCompletedCB({
+				total_files: this._total_files, 
+				file_no: this._current_file_no, 
+				file_path: fileObj.file,
+				error: err
+			});
+			
+			parser.on('finish', ()=>{
+				this._imported.push(fileObj.file);
+				dumpCompletedCB(null);
+				resolve();
+			});
+			
+			
+			parser.on('error', (err)=>{
+				dumpCompletedCB(err);
+				reject(err);
+			});
+			
+			var readerStream = fs.createReadStream(fileObj.file);
+			readerStream.setEncoding(this._encoding);
+			
+			/* istanbul ignore next */
+			readerStream.on('error', (err)=>{
+				dumpCompletedCB(err);
+				reject(err);
+			});
+			
+			readerStream.pipe(parser);
 		});
 	}
 	
@@ -261,7 +320,10 @@ class Importer{
 					var stat = await this._statFile(filepath);
 					if(stat.isFile()){
 						if(filepath.toLowerCase().substring(filepath.length-4) === '.sql'){
-							full_paths.push(path.resolve(filepath));
+							full_paths.push({
+								file: path.resolve(filepath),
+								size: stat.size
+							});
 						}
 						next();
 					}else if(stat.isDirectory()){
@@ -271,6 +333,7 @@ class Importer{
 						full_paths.push(...sql_files);
 						next();
 					}else{
+						/* istanbul ignore next */
 						next();
 					}
 				}catch(err){
