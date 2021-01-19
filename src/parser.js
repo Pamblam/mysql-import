@@ -5,9 +5,7 @@ class queryParser extends stream.Writable{
 		options = options || {};
 		super(options);
 		
-		// Total size of stream
-		this.stream_size = options.size;
-		
+		// The number of bytes processed so far
 		this.processed_size = 0;
 		
 		// The progress callback
@@ -52,7 +50,7 @@ class queryParser extends stream.Writable{
 			if(query) await this.executeQuery(query);
 		}
 		this.processed_size += chunk.length;
-		this.onProgress(this.processed_size, this.stream_size);
+		this.onProgress(this.processed_size);
 		next();
 	}
 	

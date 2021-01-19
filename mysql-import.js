@@ -1,5 +1,5 @@
 /**
- * mysql-import - v4.1.19
+ * mysql-import - v5.0.1
  * Import .sql into a MySQL database with Node.
  * @author Rob Parham
  * @website https://github.com/pamblam/mysql-import#readme
@@ -16,7 +16,7 @@ const stream = require('stream');
 
 /**
  * mysql-import - Importer class
- * @version 4.1.19
+ * @version 5.0.1
  * https://github.com/Pamblam/mysql-import
  */
 
@@ -87,6 +87,17 @@ class Importer{
 		});
 	}
 	
+	/**
+	 * Set a progress callback
+	 * @param {Function} cb - Callback function is called whenever a chunk of
+	 *		the stream is read. It is provided an object with the folling properties:
+	 *			- total_files: The total files in the queue. 
+	 *			- file_no: The number of the current dump file in the queue. 
+	 *			- bytes_processed: The number of bytes of the file processed.
+	 *			- total_bytes: The size of the dump file.
+	 *			- file_path: The full path to the dump file.
+	 * @returns {undefined}
+	 */
 	onProgress(cb){
 		if(typeof cb !== 'function') return;
 		this._progressCB = cb;
@@ -160,31 +171,39 @@ class Importer{
 	
 	/**
 	 * Import a single .sql file into the database
-	 * @param {type} filepath
+	 * @param {object} fileObj - Object containing the following properties:
+	 *		- file: The full path to the file
+	 *		- size: The size of the file in bytes
 	 * @returns {Promise}
 	 */
-	_importSingleFile(filepath){
+	_importSingleFile(fileObj){
 		return new Promise((resolve, reject)=>{
 			var error = null;
-			var stats = fs.statSync(filepath);
 			
 			var parser = new queryParser({
 				db_connection: this._conn,
 				encoding: this._encoding,
-				size: stats.size,
-				onProgress: (progress, total) => {
-					this._progressCB(this._total_files, this._current_file_no, total, progress);
+				onProgress: (progress) => {
+					this._progressCB({
+						total_files: this._total_files, 
+						file_no: this._current_file_no, 
+						bytes_processed: progress, 
+						total_bytes: fileObj.size,
+						file_path: fileObj.file
+					});
 				}
 			});
 			
-			var readerStream = fs.createReadStream(filepath);
-			readerStream.setEncoding(this._encoding);
-			readerStream.pipe(parser);
-			readerStream.on('error', err=>reject(err));
-			readerStream.on('end', ()=>{
-				this._imported.push(filepath);
+			parser.on('finish', ()=>{
+				this._imported.push(fileObj.file);
 				resolve();
 			});
+			parser.on('error', reject);
+			
+			var readerStream = fs.createReadStream(fileObj.file);
+			readerStream.setEncoding(this._encoding);
+			readerStream.pipe(parser);
+			readerStream.on('error', reject);
 		});
 	}
 	
@@ -281,7 +300,10 @@ class Importer{
 					var stat = await this._statFile(filepath);
 					if(stat.isFile()){
 						if(filepath.toLowerCase().substring(filepath.length-4) === '.sql'){
-							full_paths.push(path.resolve(filepath));
+							full_paths.push({
+								file: path.resolve(filepath),
+								size: stat.size
+							});
 						}
 						next();
 					}else if(stat.isDirectory()){
@@ -311,7 +333,7 @@ class Importer{
 /**
  * Build version number
  */
-Importer.version = '4.1.19';
+Importer.version = '5.0.1';
 
 module.exports = Importer;
 
@@ -345,9 +367,7 @@ class queryParser extends stream.Writable{
 		options = options || {};
 		super(options);
 		
-		// Total size of stream
-		this.stream_size = options.size;
-		
+		// The number of bytes processed so far
 		this.processed_size = 0;
 		
 		// The progress callback
@@ -392,7 +412,7 @@ class queryParser extends stream.Writable{
 			if(query) await this.executeQuery(query);
 		}
 		this.processed_size += chunk.length;
-		this.onProgress(this.processed_size, this.stream_size);
+		this.onProgress(this.processed_size);
 		next();
 	}
 	
