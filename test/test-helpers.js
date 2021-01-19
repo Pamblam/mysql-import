@@ -59,6 +59,7 @@ async function destroyTestDB(db){
 }
 
 function closeConnection(){
+	console.log('ending connection');
 	con.end();
 }
 

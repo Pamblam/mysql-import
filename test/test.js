@@ -20,17 +20,17 @@ mysqlConnect(config);
 const fs = require('fs');
 const MySQLImport = require('../mysql-import.js');
 const importer = new MySQLImport(config);
+importer.setEncoding('utf8');
 
 const start_time = new Date();
 
 describe('Running All Tests', ()=>{
 	
-	before(async function(){		
+	before(async function(){	
 		await createTestDB('mysql-import-test-db-1');
-		await createTestDB('mysql-import-test-db-2');
+		await createTestDB('mysql-import-test-db-2');		
 		query("USE `mysql-import-test-db-1`");
 		await importer.import(__dirname+'/sample_dump_files/test.sql');
-		importer.setEncoding('utf8');
 	});
 	
 	after(async ()=>{
