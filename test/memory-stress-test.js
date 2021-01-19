@@ -28,11 +28,12 @@ const MySQLImport = require('../mysql-import.js');
 const SQLDumpGenerator = require('./SQLDumpGenerator.js');
 const importer = new MySQLImport(config);
 
-importer.onProgress((file_count, file_no, byte_total, byte_progress)=>{
-	var percent = Math.floor(byte_progress / byte_total * 10000) / 100
+importer.onProgress(progress=>{
+	var percent = Math.floor(progress.bytes_processed / progress.total_bytes * 10000) / 100;
+	var filename = progress.file_path.split("/").pop();
 	process.stdout.clearLine();
 	process.stdout.cursorTo(0);
-	process.stdout.write(`File ${file_no} of ${file_count}: processing ${byte_progress} of ${byte_total} bytes - ${percent}% Complete`);
+	process.stdout.write(`File ${progress.file_no} of ${progress.total_files}: processing ${filename} - ${percent}% Complete`);
 });
 
 const start_time = new Date();
