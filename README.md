@@ -4,7 +4,7 @@
 	<img src='https://i.imgur.com/AOfuTLA.png'>
 </p>
 
-*Version 5.0.1* ([NPM](https://www.npmjs.com/package/mysql-import)) ([Github](https://github.com/Pamblam/mysql-import/))
+*Version 5.0.14* ([NPM](https://www.npmjs.com/package/mysql-import)) ([Github](https://github.com/Pamblam/mysql-import/))
 
 [![Build Status](https://api.travis-ci.org/Pamblam/mysql-import.svg?branch=master)](https://travis-ci.org/Pamblam/mysql-import/) [![Coverage Status](https://coveralls.io/repos/github/Pamblam/mysql-import/badge.svg?branch=master)](https://coveralls.io/github/Pamblam/mysql-import?branch=master)
 
@@ -22,6 +22,7 @@ Import MySQL files with Node!
    - [`importer.import(...input)`](#importerprototypeimportinput)
    - [`importer.disconnect(graceful=true)`](#importerprototypedisconnectgracefultrue)
    - [`importer.onProgress(callback)`](#importerprototypeonprogresscallback)
+   - [`importer.onDumpCompleted(callback)`](#importerprototypeondumpcompletedcallback)
  - [Contributing](#contributing)
 
 ## Install
@@ -47,13 +48,8 @@ const importer = new Importer({host, user, password, database});
 
 // New onProgress method, added in version 5.0!
 importer.onProgress(progress=>{
-	var percent = Math.floor(progress.bytes_processed / progress.total_bytes * 5.0.1) / 100;
-	var filename = progress.file_path.split("/").pop();
-	var message = `File ${progress.file_no} of ${progress.total_files}: `+
-			`processing ${filename} - ${percent}% Complete`;
-	process.stdout.clearLine();
-	process.stdout.cursorTo(0);
-	process.stdout.write(message);
+	var percent = Math.floor(progress.bytes_processed / progress.total_bytes * 10000) / 100;
+	console.log(`${percent}% Completed`);
 });
 
 importer.import('path/to/dump.sql').then(()=>{
@@ -89,6 +85,14 @@ Set or change the database to import to.
  - `file_no`: The number of the current dump file in the queue. 
  - `bytes_processed`: The number of bytes of the file processed.
  - `total_bytes`: The size of the dump file.
+ - `file_path`: The full path to the dump file.
+
+### `Importer.prototype.onDumpCompleted(callback)`
+
+*(New in v. 5.0!) -* Set a callback to be called after each dump file has completed processing. Callback is provided an object with the following properties:
+
+ - `total_files`: The total files in the queue. 
+ - `file_no`: The number of the current dump file in the queue. 
  - `file_path`: The full path to the dump file.
 
 ### `Importer.prototype.import(...input)`

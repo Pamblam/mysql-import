@@ -17,6 +17,7 @@ class Importer{
 		this._encoding = 'utf8';
 		this._imported = [];
 		this._progressCB = ()=>{};
+		this._dumpCompletedCB = ()=>{};
 		this._total_files = 0;
 		this._current_file_no = 0;
 	}
@@ -89,6 +90,20 @@ class Importer{
 	}
 	
 	/**
+	 * Set a progress callback
+	 * @param {Function} cb - Callback function is called whenever a dump
+	 *		file has finished processing.
+	 *			- total_files: The total files in the queue. 
+	 *			- file_no: The number of the current dump file in the queue. 
+	 *			- file_path: The full path to the dump file.
+	 * @returns {undefined}
+	 */
+	onDumpCompleted(cb){
+		if(typeof cb !== 'function') return;
+		this._dumpCompletedCB = cb;
+	}
+	
+	/**
 	 * Import (an) .sql file(s).
 	 * @param string|array input - files or paths to scan for .sql files
 	 * @returns {Promise}
@@ -99,6 +114,7 @@ class Importer{
 				await this._connect();
 				var files = await this._getSQLFilePaths(...input);
 				this._total_files = files.length;
+				this._current_file_no = 0;
 				
 				var error = null;
 				await slowLoop(files, (file, index, next)=>{
@@ -163,7 +179,6 @@ class Importer{
 	 */
 	_importSingleFile(fileObj){
 		return new Promise((resolve, reject)=>{
-			var error = null;
 			
 			var parser = new queryParser({
 				db_connection: this._conn,
@@ -179,16 +194,34 @@ class Importer{
 				}
 			});
 			
+			const dumpCompletedCB = (err) => this._dumpCompletedCB({
+				total_files: this._total_files, 
+				file_no: this._current_file_no, 
+				file_path: fileObj.file,
+				error: err
+			});
+			
 			parser.on('finish', ()=>{
 				this._imported.push(fileObj.file);
+				dumpCompletedCB(null);
 				resolve();
 			});
-			parser.on('error', reject);
+			
+			
+			parser.on('error', (err)=>{
+				dumpCompletedCB(err);
+				reject(err);
+			});
 			
 			var readerStream = fs.createReadStream(fileObj.file);
 			readerStream.setEncoding(this._encoding);
+			
+			readerStream.on('error', (err)=>{
+				dumpCompletedCB(err);
+				reject(err);
+			});
+			
 			readerStream.pipe(parser);
-			readerStream.on('error', reject);
 		});
 	}
 	

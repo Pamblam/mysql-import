@@ -44,14 +44,20 @@ class queryParser extends stream.Writable{
 	async _write(chunk, enc, next) {
 		var query;
 		chunk = chunk.toString(this.encoding);
+		var error = null;
 		for (let i = 0; i < chunk.length; i++) {
 			let char = chunk[i];
 			query = this.parseChar(char);
-			if(query) await this.executeQuery(query);
+			try{
+				if(query) await this.executeQuery(query);
+			}catch(e){
+				error = e;
+				break;
+			}
 		}
 		this.processed_size += chunk.length;
 		this.onProgress(this.processed_size);
-		next();
+		next(error);
 	}
 	
 	// Execute a query, return a Promise
