@@ -13,6 +13,7 @@
  */
 function slowLoop(items, loopBody) {
 	return new Promise(f => {
+		/* istanbul ignore next */
 		if(!items.length) return f();
 		let done = arguments[2] || f;
 		let idx = arguments[3] || 0;

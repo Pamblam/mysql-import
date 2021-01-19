@@ -1,5 +1,5 @@
 /**
- * mysql-import - v5.0.14
+ * mysql-import - v5.0.18
  * Import .sql into a MySQL database with Node.
  * @author Rob Parham
  * @website https://github.com/pamblam/mysql-import#readme
@@ -16,7 +16,7 @@ const stream = require('stream');
 
 /**
  * mysql-import - Importer class
- * @version 5.0.14
+ * @version 5.0.18
  * https://github.com/Pamblam/mysql-import
  */
 
@@ -76,6 +76,7 @@ class Importer{
 		return new Promise((resolve, reject)=>{
 			if(!this._conn){
 				this._connection_settings.database = database;
+				resolve();
 				return;
 			}
 			this._conn.changeUser({database}, err=>{
@@ -231,6 +232,7 @@ class Importer{
 			var readerStream = fs.createReadStream(fileObj.file);
 			readerStream.setEncoding(this._encoding);
 			
+			/* istanbul ignore next */
 			readerStream.on('error', (err)=>{
 				dumpCompletedCB(err);
 				reject(err);
@@ -346,6 +348,7 @@ class Importer{
 						full_paths.push(...sql_files);
 						next();
 					}else{
+						/* istanbul ignore next */
 						next();
 					}
 				}catch(err){
@@ -366,7 +369,7 @@ class Importer{
 /**
  * Build version number
  */
-Importer.version = '5.0.14';
+Importer.version = '5.0.18';
 
 module.exports = Importer;
 
@@ -385,6 +388,7 @@ module.exports = Importer;
  */
 function slowLoop(items, loopBody) {
 	return new Promise(f => {
+		/* istanbul ignore next */
 		if(!items.length) return f();
 		let done = arguments[2] || f;
 		let idx = arguments[3] || 0;
@@ -397,6 +401,7 @@ function slowLoop(items, loopBody) {
 class queryParser extends stream.Writable{
 	
 	constructor(options){
+		/* istanbul ignore next */
 		options = options || {};
 		super(options);
 		

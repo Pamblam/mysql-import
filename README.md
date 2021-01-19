@@ -4,7 +4,7 @@
 	<img src='https://i.imgur.com/AOfuTLA.png'>
 </p>
 
-*Version 5.0.14* ([NPM](https://www.npmjs.com/package/mysql-import)) ([Github](https://github.com/Pamblam/mysql-import/))
+*Version 5.0.18* ([NPM](https://www.npmjs.com/package/mysql-import)) ([Github](https://github.com/Pamblam/mysql-import/))
 
 [![Build Status](https://api.travis-ci.org/Pamblam/mysql-import.svg?branch=master)](https://travis-ci.org/Pamblam/mysql-import/) [![Coverage Status](https://coveralls.io/repos/github/Pamblam/mysql-import/badge.svg?branch=master)](https://coveralls.io/github/Pamblam/mysql-import?branch=master)
 
@@ -94,6 +94,7 @@ Set or change the database to import to.
  - `total_files`: The total files in the queue. 
  - `file_no`: The number of the current dump file in the queue. 
  - `file_path`: The full path to the dump file.
+ - `error`: If there was an error, the error object; if no errors, this will be `null`.
 
 ### `Importer.prototype.import(...input)`
 

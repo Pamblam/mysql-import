@@ -61,6 +61,7 @@ class Importer{
 		return new Promise((resolve, reject)=>{
 			if(!this._conn){
 				this._connection_settings.database = database;
+				resolve();
 				return;
 			}
 			this._conn.changeUser({database}, err=>{
@@ -216,6 +217,7 @@ class Importer{
 			var readerStream = fs.createReadStream(fileObj.file);
 			readerStream.setEncoding(this._encoding);
 			
+			/* istanbul ignore next */
 			readerStream.on('error', (err)=>{
 				dumpCompletedCB(err);
 				reject(err);
@@ -331,6 +333,7 @@ class Importer{
 						full_paths.push(...sql_files);
 						next();
 					}else{
+						/* istanbul ignore next */
 						next();
 					}
 				}catch(err){

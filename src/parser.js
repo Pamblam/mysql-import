@@ -2,6 +2,7 @@
 class queryParser extends stream.Writable{
 	
 	constructor(options){
+		/* istanbul ignore next */
 		options = options || {};
 		super(options);
 		

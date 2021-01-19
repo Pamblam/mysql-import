@@ -23,20 +23,29 @@ var config = {
 
 mysqlConnect(config);
 
-
 const MySQLImport = require('../mysql-import.js');
 const SQLDumpGenerator = require('./SQLDumpGenerator.js');
 const importer = new MySQLImport(config);
 
+const start_time = new Date();
 importer.onProgress(progress=>{
-	var percent = Math.floor(progress.bytes_processed / progress.total_bytes * 10000) / 100;
+	var actual_pct = progress.bytes_processed / progress.total_bytes * 100;
+	
+	var time_so_far = (new Date()) - start_time;
+	var total_time = time_so_far * 100 / actual_pct;
+	var remaining_time = total_time - time_so_far;
+	var date = new Date(0);
+	date.setSeconds(remaining_time / 1000);
+	var timeString = date.toISOString().substr(11, 8);
+	
+	var percent = Math.floor(actual_pct * 100) / 100;
 	var filename = progress.file_path.split("/").pop();
 	process.stdout.clearLine();
 	process.stdout.cursorTo(0);
-	process.stdout.write(`File ${progress.file_no} of ${progress.total_files}: processing ${filename} - ${percent}% Complete`);
+	process.stdout.write(`Processing ${filename} - ${percent}% Complete, about ${timeString} remaining.`);
 });
 
-const start_time = new Date();
+
 var big_dump_file = path.join(__dirname, 'large_dump.sql');
 
 describe('Running Memory Tests', ()=>{
