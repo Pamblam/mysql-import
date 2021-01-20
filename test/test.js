@@ -1,9 +1,9 @@
 
 // SET THESE FOR LOCAL TESTING ONLY!
 // RESET THEM TO '' BEFORE COMMITING CHANGES!
-const mysql_host = '';
-const mysql_user = '';
-const mysql_pass = '';
+const mysql_host = 'localhost';
+const mysql_user = 'root';
+const mysql_pass = 'ourtown1972';
 
 const expect = require('chai').expect;
 const {errorHandler,query,mysqlConnect,createTestDB,destroyTestDB,closeConnection} = require('./test-helpers.js');
@@ -30,9 +30,14 @@ importer.onProgress(progress=>{
 	var filename = progress.file_path.split("/").pop();
 	var message = `\tFile ${progress.file_no} of ${progress.total_files}: `+
 			`processing ${filename} - ${percent}% Complete`;
-	process.stdout.clearLine();
-	process.stdout.cursorTo(0);
-	process.stdout.write(message);
+	if(process.stdout.isTTY){
+		process.stdout.clearLine();
+		process.stdout.cursorTo(0);
+		process.stdout.write(message);
+	}else{
+		console.log(message);
+	}
+	
 });
 
 importer.onDumpCompleted(status=>{
@@ -45,9 +50,13 @@ importer.onDumpCompleted(status=>{
 		message = `\tFile ${status.file_no} of ${status.total_files}: `+
 			`Completed processing ${filename}\n`;
 	}
-	process.stdout.clearLine();
-	process.stdout.cursorTo(0);
-	process.stdout.write(message);
+	if(process.stdout.isTTY){
+		process.stdout.clearLine();
+		process.stdout.cursorTo(0);
+		process.stdout.write(message);
+	}else{
+		console.log(message);
+	}
 });
 
 importer.setEncoding('utf8');

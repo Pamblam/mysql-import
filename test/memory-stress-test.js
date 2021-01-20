@@ -5,9 +5,9 @@
 
 // SET THESE FOR LOCAL TESTING ONLY!
 // RESET THEM TO '' BEFORE COMMITING CHANGES!
-const mysql_host = '';
-const mysql_user = '';
-const mysql_pass = '';
+const mysql_host = 'localhost';
+const mysql_user = 'root';
+const mysql_pass = 'ourtown1972';
 
 const fs = require('fs');
 const expect = require('chai').expect;
@@ -40,9 +40,15 @@ importer.onProgress(progress=>{
 	
 	var percent = Math.floor(actual_pct * 100) / 100;
 	var filename = progress.file_path.split("/").pop();
-	process.stdout.clearLine();
-	process.stdout.cursorTo(0);
-	process.stdout.write(`Processing ${filename} - ${percent}% Complete, about ${timeString} remaining.`);
+	
+	if(process.stdout.isTTY){
+		process.stdout.clearLine();
+		process.stdout.cursorTo(0);
+		process.stdout.write(`Processing ${filename} - ${percent}% Complete, about ${timeString} remaining.`);
+	}else{
+		console.log(`Processing ${filename} - ${percent}% Complete, about ${timeString} remaining.`);
+	}
+
 });
 
 
