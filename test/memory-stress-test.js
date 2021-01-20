@@ -5,9 +5,9 @@
 
 // SET THESE FOR LOCAL TESTING ONLY!
 // RESET THEM TO '' BEFORE COMMITING CHANGES!
-const mysql_host = 'localhost';
-const mysql_user = 'root';
-const mysql_pass = 'ourtown1972';
+const mysql_host = '';
+const mysql_user = '';
+const mysql_pass = '';
 
 const fs = require('fs');
 const expect = require('chai').expect;
