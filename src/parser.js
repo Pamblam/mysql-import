@@ -125,6 +125,10 @@ class queryParser extends stream.Writable{
 	// Check if we're at the end of the query
 	// return the query if so, else return false;
 	checkEndOfQuery(){
+		if(this.seekingDelimiter){
+			return false;
+		}
+
 		var query = false;
 		var demiliterFound = false;
 		if(!this.quoteType && this.buffer.length >= this.delimiter.length){

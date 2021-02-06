@@ -1,5 +1,5 @@
 /**
- * mysql-import - v5.0.20
+ * mysql-import - v5.0.21
  * Import .sql into a MySQL database with Node.
  * @author Rob Parham
  * @website https://github.com/pamblam/mysql-import#readme
@@ -16,7 +16,7 @@ const stream = require('stream');
 
 /**
  * mysql-import - Importer class
- * @version 5.0.20
+ * @version 5.0.21
  * https://github.com/Pamblam/mysql-import
  */
 
@@ -369,7 +369,7 @@ class Importer{
 /**
  * Build version number
  */
-Importer.version = '5.0.20';
+Importer.version = '5.0.21';
 
 module.exports = Importer;
 
@@ -524,6 +524,10 @@ class queryParser extends stream.Writable{
 	// Check if we're at the end of the query
 	// return the query if so, else return false;
 	checkEndOfQuery(){
+		if(this.seekingDelimiter){
+			return false;
+		}
+
 		var query = false;
 		var demiliterFound = false;
 		if(!this.quoteType && this.buffer.length >= this.delimiter.length){

@@ -124,7 +124,12 @@ describe('Running All Tests', ()=>{
 	
 	it('Test imported', async ()=>{
 		var files = importer.getImported();
-		expect(files.length).to.equal(10);
+		expect(files.length).to.equal(11);
+	});
+	
+	it('Test imported function', async ()=>{
+		var funcs = await query("SHOW FUNCTION STATUS LIKE 'testfunc';");
+		expect(funcs.length).to.equal(1);
 	});
 	
 	it('Test unsupported encoding', ()=>{
