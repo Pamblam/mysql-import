@@ -1,7 +1,7 @@
-
 const mysql = require('mysql');
 
 var con;
+var log_bin_trust_function_creators;
 
 /**
  * Handle Errors and kill the test script.
@@ -33,12 +33,15 @@ function query(sql){
  * @param {config object} config
  * @returns {Connection}
  */
-function mysqlConnect(config){
+async function mysqlConnect(config){
 	con = mysql.createConnection({
 		host: config.host, 
 		user: config.user, 
 		password: config.password
 	});
+	var res = await query("SHOW GLOBAL VARIABLES LIKE 'log_bin_trust_function_creators';");
+	log_bin_trust_function_creators = res[0].Value
+	await query("SET GLOBAL log_bin_trust_function_creators = 1;");
 }
 
 /**
@@ -58,7 +61,8 @@ async function destroyTestDB(db){
 	await query("DROP DATABASE `"+db+"`;");
 }
 
-function closeConnection(){
+async function closeConnection(){
+	await query("SET GLOBAL log_bin_trust_function_creators = '"+log_bin_trust_function_creators+"';");
 	con.end();
 }
 
