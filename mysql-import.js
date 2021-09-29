@@ -1,5 +1,5 @@
 /**
- * mysql-import - v5.0.21
+ * mysql-import - v5.0.22
  * Import .sql into a MySQL database with Node.
  * @author Rob Parham
  * @website https://github.com/pamblam/mysql-import#readme
@@ -16,7 +16,7 @@ const stream = require('stream');
 
 /**
  * mysql-import - Importer class
- * @version 5.0.21
+ * @version 5.0.22
  * https://github.com/Pamblam/mysql-import
  */
 
@@ -369,7 +369,7 @@ class Importer{
 /**
  * Build version number
  */
-Importer.version = '5.0.21';
+Importer.version = '5.0.22';
 
 module.exports = Importer;
 
@@ -430,7 +430,13 @@ class queryParser extends stream.Writable{
 		
 		// The string that denotes the end of a query
 		this.delimiter = ';';
-		
+
+		// Literal string to look for while checking for a mysql delimiter set statement
+		this.delimiterLiteral = 'delimiter ';
+
+		// Temporary buffer used while checking for a mysql delimiter set statement
+		this.delimiterParseBuffer = '';
+
 		// Are we currently seeking new delimiter
 		this.seekingDelimiter = false;
 		
@@ -497,17 +503,32 @@ class queryParser extends stream.Writable{
 	
 	// Check to see if a new delimiter is being assigned
 	checkNewDelimiter(char){
-		var buffer_str = this.buffer.join('').toLowerCase().trim();
-		if(buffer_str === 'delimiter' && !this.quoteType){
-			this.seekingDelimiter = true;
+		var lowerChar = char.toLowerCase();
+		var isNewLine = lowerChar === "\n" || lowerChar === "\r";
+		if(isNewLine && this.seekingDelimiter){
+			// We found the new delimiter, reset locals
+			this.seekingDelimiter = false;
+			this.delimiterParseBuffer = '';
+			// Clear buffer so we can continue looking for new queries
 			this.buffer = [];
+		}else if(this.seekingDelimiter){
+			// Append the char to the delimiter string, we haven't encountered a newline yet
+			this.delimiter += lowerChar;
+		}
+
+		// If the current character is the one we expect given the delimiter literal
+		if(!this.quoteType && lowerChar == this.delimiterLiteral[this.delimiterParseBuffer.length]){
+			this.delimiterParseBuffer += lowerChar;
 		}else{
-			var isNewLine = char === "\n" || char === "\r";
-			if(isNewLine && this.seekingDelimiter){
-				this.seekingDelimiter = false;
-				this.delimiter = this.buffer.join('').trim();
-				this.buffer = [];
-			}
+			// Reset temp buffer because current character didn't match, we have to start over again
+			this.delimiterParseBuffer = '';
+		}
+
+		// We matched the whole literal so we can start looking for the delimiter value itself
+		if(this.delimiterLiteral === this.delimiterParseBuffer.toString()){
+			this.seekingDelimiter = true;
+			// Reset the current delimiter because we now can start parsing a new one
+			this.delimiter = '';
 		}
 	}
 	
