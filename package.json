@@ -3,10 +3,6 @@
   "bugs": {
     "url": "https://github.com/pamblam/mysql-import/issues"
   },
-  "bundleDependencies": false,
-  "dependencies": {
-    "mysql": "^2.18.1"
-  },
   "deprecated": false,
   "description": "Import .sql into a MySQL database with Node.",
   "devDependencies": {
@@ -42,5 +38,8 @@
     "memory-test": "node_modules/.bin/mocha ./test/memory-stress-test.js --timeout 0",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
-  "version": "5.0.21"
+  "version": "5.0.24",
+  "dependencies": {
+    "mysql2": "^2.3.3"
+  }
 }
