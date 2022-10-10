@@ -4,7 +4,7 @@
 	<img src='https://i.imgur.com/AOfuTLA.png'>
 </p>
 
-*Version 5.0.24* ([NPM](https://www.npmjs.com/package/mysql-import)) ([Github](https://github.com/Pamblam/mysql-import/))
+*Version 5.0.26* ([NPM](https://www.npmjs.com/package/mysql-import)) ([Github](https://github.com/Pamblam/mysql-import/))
 
 [![Build Status](https://api.travis-ci.org/Pamblam/mysql-import.svg?branch=master)](https://travis-ci.org/Pamblam/mysql-import/) [![Coverage Status](https://coveralls.io/repos/github/Pamblam/mysql-import/badge.svg?branch=master)](https://coveralls.io/github/Pamblam/mysql-import?branch=master)
 
@@ -38,7 +38,7 @@ git clone https://github.com/Pamblam/mysql-import.git
 ## TLDR:
 
 ```js
-const host = 'localhost';
+const host = '5.0.26.1';
 const user = 'root';
 const password = 'password';
 const database = 'mydb';
@@ -46,7 +46,6 @@ const database = 'mydb';
 const Importer = require('mysql-import');
 const importer = new Importer({host, user, password, database});
 
-// New onProgress method, added in version 5.0!
 importer.onProgress(progress=>{
   var percent = Math.floor(progress.bytes_processed / progress.total_bytes * 10000) / 100;
   console.log(`${percent}% Completed`);
@@ -61,9 +60,9 @@ importer.import('path/to/dump.sql').then(()=>{
 ```
 ## Methods
 
-### `new Importer({host, user, password[, database]})`
+### `new Importer({host, user, password[, database, port, ssl]})`
 
-The constructor requires an object with a `host`, `user`, and `password` parameter. Passing in a database parameter is optional.
+The constructor requires an object with a `host`, `user`, and `password` parameter. Passing in a database parameter is optional. Any of the parameters [listed here](https://github.com/mysqljs/mysql#connection-options) will work as well.
 
 ### `Importer.prototype.getImported()`
 
@@ -79,7 +78,7 @@ Set or change the database to import to.
 
 ### `Importer.prototype.onProgress(callback)`
 
-*(New in v. 5.0!) -* Set a callback to be called as the importer processes chunks of the dump file. Callback is provided an object with the following properties:
+Set a callback to be called as the importer processes chunks of the dump file. Callback is provided an object with the following properties:
 
  - `total_files`: The total files in the queue. 
  - `file_no`: The number of the current dump file in the queue. 
@@ -89,7 +88,7 @@ Set or change the database to import to.
 
 ### `Importer.prototype.onDumpCompleted(callback)`
 
-*(New in v. 5.0!) -* Set a callback to be called after each dump file has completed processing. Callback is provided an object with the following properties:
+Set a callback to be called after each dump file has completed processing. Callback is provided an object with the following properties:
 
  - `total_files`: The total files in the queue. 
  - `file_no`: The number of the current dump file in the queue. 
