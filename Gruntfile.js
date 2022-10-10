@@ -28,7 +28,6 @@ module.exports = function(grunt) {
 				src: [
 					'src/header.js', 
 					'src/importer.js',
-					'src/slowloop.js',
 					'src/parser.js'
 				],
 				dest: 'mysql-import.js',

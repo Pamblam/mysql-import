@@ -118,19 +118,26 @@ class Importer{
 				this._current_file_no = 0;
 				
 				var error = null;
-				await slowLoop(files, (file, index, next)=>{
-					this._current_file_no++;
-					if(error){
-						next();
-						return;
-					}
-					this._importSingleFile(file).then(()=>{
-						next();
-					}).catch(err=>{
-						error = err;
-						next();
+				
+				
+				
+				for(let i=0; i<files.length; i++){
+					let file = files[i];
+					await new Promise(next=>{
+						this._current_file_no++;
+						if(error){
+							next();
+							return;
+						}
+						this._importSingleFile(file).then(()=>{
+							next();
+						}).catch(err=>{
+							error = err;
+							next();
+						});
 					});
-				});
+				}
+				
 				if(error) throw error;
 				await this.disconnect();
 				resolve();
@@ -310,37 +317,42 @@ class Importer{
 			var full_paths = [];
 			var error = null;
 			paths = [].concat.apply([], paths); // flatten array of paths
-			await slowLoop(paths, async (filepath, index, next)=>{
-				if(error){
-					next();
-					return;
-				}
-				try{
-					await this._fileExists(filepath);
-					var stat = await this._statFile(filepath);
-					if(stat.isFile()){
-						if(filepath.toLowerCase().substring(filepath.length-4) === '.sql'){
-							full_paths.push({
-								file: path.resolve(filepath),
-								size: stat.size
-							});
+			
+			for(let i=0; i<paths.length; i++){
+				let filepath = paths[i];
+				await new Promise(async next=>{
+					if(error){
+						next();
+						return;
+					}
+					try{
+						await this._fileExists(filepath);
+						var stat = await this._statFile(filepath);
+						if(stat.isFile()){
+							if(filepath.toLowerCase().substring(filepath.length-4) === '.sql'){
+								full_paths.push({
+									file: path.resolve(filepath),
+									size: stat.size
+								});
+							}
+							next();
+						}else if(stat.isDirectory()){
+							var more_paths = await this._readDir(filepath);
+							more_paths = more_paths.map(p=>path.join(filepath, p));
+							var sql_files = await this._getSQLFilePaths(...more_paths);
+							full_paths.push(...sql_files);
+							next();
+						}else{
+							/* istanbul ignore next */
+							next();
 						}
-						next();
-					}else if(stat.isDirectory()){
-						var more_paths = await this._readDir(filepath);
-						more_paths = more_paths.map(p=>path.join(filepath, p));
-						var sql_files = await this._getSQLFilePaths(...more_paths);
-						full_paths.push(...sql_files);
-						next();
-					}else{
-						/* istanbul ignore next */
+					}catch(err){
+						error = err;
 						next();
 					}
-				}catch(err){
-					error = err;
-					next();
-				}
-			});
+				});
+			}
+			
 			if(error){
 				reject(error);
 			}else{
