@@ -38,7 +38,7 @@
     "memory-test": "node_modules/.bin/mocha ./test/memory-stress-test.js --timeout 0",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
-  "version": "5.0.26",
+  "version": "5.1.1",
   "dependencies": {
     "mysql2": "^2.3.3"
   }
